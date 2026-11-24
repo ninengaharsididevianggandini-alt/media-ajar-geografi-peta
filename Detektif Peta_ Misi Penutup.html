@@ -1,0 +1,430 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Detektif Peta: Misi Penutup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Lexend:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: meja peta malam hari — header + tab pos di atas, satu panel soal di tengah, garis lintang/bujur samar di latar */
+:root{
+  --bg:#10221f; --panel:#172e2a; --panel-2:#1d3833; --line:#2e4d46; --fg:#e9efe6; --muted:#9fb5ad;
+  --accent:#f2c14e; --accent-ink:#f2c14e; --on-accent:#1b1a12;
+  --ok:#6fcf97; --ok-bg:rgba(111,207,151,.14); --bad:#ff8a7a; --bad-bg:rgba(255,138,122,.13);
+  --grid:rgba(233,239,230,.045);
+  --f-display:"Zilla Slab",Georgia,"Times New Roman",serif;
+  --f-body:"Lexend",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#edf2ec; --panel:#ffffff; --panel-2:#f4f7f2; --line:#cbd9d1; --fg:#14302b; --muted:#566f68;
+    --accent:#f2c14e; --accent-ink:#8a5f00; --on-accent:#1b1a12;
+    --ok:#1d7f4b; --ok-bg:rgba(29,127,75,.10); --bad:#b8382a; --bad-bg:rgba(184,56,42,.09);
+    --grid:rgba(20,48,43,.06); color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#edf2ec; --panel:#ffffff; --panel-2:#f4f7f2; --line:#cbd9d1; --fg:#14302b; --muted:#566f68;
+  --accent:#f2c14e; --accent-ink:#8a5f00; --on-accent:#1b1a12;
+  --ok:#1d7f4b; --ok-bg:rgba(29,127,75,.10); --bad:#b8382a; --bad-bg:rgba(184,56,42,.09);
+  --grid:rgba(20,48,43,.06); color-scheme:light;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--fg); font-family:var(--f-body); font-size:16px; line-height:1.55;
+  background-image:
+    repeating-linear-gradient(0deg,var(--grid) 0 1px,transparent 1px 72px),
+    repeating-linear-gradient(90deg,var(--grid) 0 1px,transparent 1px 72px);
+}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px;padding-block:24px 48px;display:grid;gap:20px}
+header{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:14px;align-items:center;min-width:0}
+.compass{width:52px;height:52px;flex:none}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(1.6rem,3.6vw,2.2rem);line-height:1.1;margin:0;text-wrap:balance}
+h1 em{font-style:normal;color:var(--accent-ink)}
+.sub{margin:2px 0 0;color:var(--muted);font-size:.88rem}
+.who{display:flex;flex-direction:column;gap:4px;min-width:0}
+.who label{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.who input{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;width:min(260px,100%)}
+.who input:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.mission{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px;display:flex;gap:12px;align-items:flex-start;font-size:.95rem}
+.mission b{color:var(--accent-ink)}
+
+nav.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.tab{flex:none;font:inherit;font-size:.9rem;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:999px;padding:7px 14px 7px 8px;display:flex;gap:8px;align-items:center;cursor:pointer}
+.tab .n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--panel-2);font-family:var(--f-mono);font-size:.78rem}
+.tab[aria-current="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.tab[aria-current="true"] .n{background:var(--accent);color:var(--on-accent)}
+.tab.done .n{background:var(--ok);color:var(--bg)}
+.tab .pts{font-family:var(--f-mono);font-size:.75rem;opacity:.8}
+
+main{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,3vw,30px);display:grid;gap:20px;min-width:0}
+.pos-head{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink)}
+h2{font-family:var(--f-display);font-weight:700;font-size:clamp(1.4rem,2.8vw,1.8rem);margin:0;line-height:1.15}
+.lead{margin:0;color:var(--muted);max-width:65ch}
+
+.items{display:grid;gap:12px}
+.item{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--panel-2);display:grid;gap:10px;min-width:0}
+.item.ok{border-color:var(--ok);background:var(--ok-bg)}
+.item.bad{border-color:var(--bad);background:var(--bad-bg)}
+.q{margin:0;font-weight:500}
+.q .tag{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);margin-right:6px}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{font:inherit;font-size:.92rem;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;min-height:40px}
+.choice:hover:not(:disabled){border-color:var(--accent)}
+.choice[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:600}
+.choice:disabled{cursor:default}
+.choice.right{outline:2px solid var(--ok);outline-offset:1px}
+.feedback{margin:0;font-size:.9rem;padding-top:8px;border-top:1px dashed var(--line)}
+.feedback b.y{color:var(--ok)} .feedback b.n{color:var(--bad)}
+
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.proj-grid .item svg{width:100%;max-width:220px;height:auto;justify-self:center;display:block}
+.sub-q{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:2px 0 -4px}
+
+.numrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.numrow input{font:inherit;font-family:var(--f-mono);font-size:1rem;width:120px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.numrow .unit{color:var(--muted)}
+.case-box{border-left:4px solid var(--accent);padding:10px 16px;background:var(--panel-2);border-radius:0 10px 10px 0;max-width:65ch}
+.case-box p{margin:0}
+.items .case-box.ctx{margin-top:10px;max-width:none}
+.items .case-box.ctx:first-child{margin-top:0}
+
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:inherit;font-weight:600;border-radius:10px;padding:11px 20px;cursor:pointer;border:1px solid var(--line);background:var(--panel-2);color:var(--fg)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.hint{font-size:.85rem;color:var(--muted)}
+.score-line{font-family:var(--f-mono);font-size:.95rem}
+
+.report{display:grid;gap:18px}
+.badge{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.badge .big{font-family:var(--f-display);font-size:clamp(2.6rem,7vw,3.6rem);line-height:1;color:var(--accent-ink);font-variant-numeric:tabular-nums}
+.badge .rank{font-family:var(--f-display);font-size:1.4rem;font-weight:700}
+.tbl{width:100%;border-collapse:collapse;font-size:.95rem}
+.tbl td{padding:9px 4px;border-bottom:1px solid var(--line)}
+.tbl td:last-child{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--accent)}
+footer{color:var(--muted);font-size:.8rem;text-align:center}
+@media (prefers-reduced-motion:no-preference){.item,.choice{transition:background .15s,border-color .15s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="compass" viewBox="0 0 52 52" aria-hidden="true">
+        <circle cx="26" cy="26" r="24" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <path d="M26 6 L31 26 L26 22 L21 26 Z" fill="var(--accent)"/>
+        <path d="M26 46 L21 26 L26 30 L31 26 Z" fill="var(--muted)"/>
+      </svg>
+      <div>
+        <h1>Detektif <em>Peta</em>: Misi Penutup</h1>
+        <p class="sub">Proyeksi Peta &amp; Peta Tata Ruang · Geografi Kelas X · SMA Negeri 1 Singaraja</p>
+      </div>
+    </div>
+    <div class="who">
+      <label for="nama">Nama detektif</label>
+      <input id="nama" type="text" placeholder="Tulis namamu" autocomplete="off">
+    </div>
+  </header>
+
+  <div class="mission">
+    <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style="flex:none;margin-top:2px"><circle cx="9" cy="9" r="6.5" fill="none" stroke="var(--accent)" stroke-width="2.2"/><path d="M14 14 L20 20" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round"/></svg>
+    <div><b>Misi terakhir hari ini:</b> buktikan kamu paham cara bumi yang bulat dipindahkan ke kertas datar, dan bagaimana peta dipakai untuk menata ruang di sekitar kita. Selesaikan lima pos. Jawaban yang sudah diperiksa tidak bisa diubah, jadi baca soalnya baik-baik.</div>
+  </div>
+
+  <nav class="tabs" id="tabs" aria-label="Pos kuis"></nav>
+  <main id="main" aria-live="polite"></main>
+  <footer>Disusun untuk pembelajaran materi Peta · Ni Nengah Arsidi Devi Anggandini</footer>
+</div>
+
+<script>
+/* ---------- Gambar proyeksi (SVG) ---------- */
+function globe(extra){
+  return `<svg viewBox="0 0 200 170" role="img">
+    <g fill="none" stroke="var(--muted)" stroke-width="1.2">
+      <circle cx="100" cy="95" r="52" fill="var(--panel)" stroke="var(--fg)" stroke-width="1.6"/>
+      <ellipse cx="100" cy="95" rx="52" ry="12"/>
+      <ellipse cx="100" cy="72" rx="44" ry="9"/>
+      <ellipse cx="100" cy="118" rx="44" ry="9"/>
+      <ellipse cx="100" cy="95" rx="20" ry="52"/>
+      <line x1="100" y1="43" x2="100" y2="147"/>
+    </g>${extra}</svg>`;
+}
+const SVG_KERUCUT = globe(`<g fill="var(--accent)" fill-opacity=".18" stroke="var(--accent)" stroke-width="2">
+  <path d="M100 6 L38 128 Q100 146 162 128 Z"/></g>
+  <ellipse cx="100" cy="72" rx="44" ry="9" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-dasharray="5 4"/>`);
+const SVG_SILINDER = globe(`<g fill="var(--accent)" fill-opacity=".16" stroke="var(--accent)" stroke-width="2">
+  <rect x="48" y="22" width="104" height="146" fill-opacity=".14" stroke="none"/>
+  <line x1="48" y1="22" x2="48" y2="160"/><line x1="152" y1="22" x2="152" y2="160"/>
+  <ellipse cx="100" cy="22" rx="52" ry="9"/><path d="M48 160 Q100 178 152 160" fill="none"/></g>
+  <ellipse cx="100" cy="95" rx="52" ry="12" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-dasharray="5 4"/>`);
+const SVG_AZIMUTAL = globe(`<g fill="var(--accent)" fill-opacity=".2" stroke="var(--accent)" stroke-width="2">
+  <path d="M30 50 L130 50 L170 36 L70 36 Z"/></g>
+  <circle cx="100" cy="43" r="4" fill="var(--accent)"/>`);
+
+/* ---------- Data soal ---------- */
+const POS = [
+  {
+    id:"bidang", title:"Bidang Proyeksi", eyebrow:"Pos 1",
+    lead:"Bagian kuning pada tiap gambar adalah bidang proyeksi yang menyinggung atau menyelubungi bola bumi. Tentukan jenis proyeksinya dan wilayah yang paling cocok dipetakan dengannya.",
+    type:"proj",
+    items:[
+      {tag:"Gambar A", svg:SVG_KERUCUT,
+        parts:[{q:"Jenis proyeksi", opts:["Azimutal","Kerucut","Silinder"], a:"Kerucut"},
+               {q:"Cocok untuk", opts:["Daerah kutub","Lintang tengah","Khatulistiwa"], a:"Lintang tengah"}],
+        why:"Bidang berbentuk kerucut menyelubungi bumi dan menyinggungnya di satu garis lintang tengah, sehingga cocok untuk Eropa atau Amerika Serikat."},
+      {tag:"Gambar B", svg:SVG_SILINDER,
+        parts:[{q:"Jenis proyeksi", opts:["Azimutal","Kerucut","Silinder"], a:"Silinder"},
+               {q:"Cocok untuk", opts:["Daerah kutub","Lintang tengah","Khatulistiwa"], a:"Khatulistiwa"}],
+        why:"Tabung menyelubungi bumi dan menyinggungnya di khatulistiwa. Karena itu proyeksi silinder (misalnya Mercator dan UTM) dipakai untuk Indonesia."},
+      {tag:"Gambar C", svg:SVG_AZIMUTAL,
+        parts:[{q:"Jenis proyeksi", opts:["Azimutal","Kerucut","Silinder"], a:"Azimutal"},
+               {q:"Cocok untuk", opts:["Daerah kutub","Lintang tengah","Khatulistiwa"], a:"Daerah kutub"}],
+        why:"Bidang datar menyinggung bumi di satu titik. Kalau titiknya di kutub, daerah sekitar kutub tergambar paling akurat."}
+    ]
+  },
+  {
+    id:"syarat", title:"Syarat Proyeksi", eyebrow:"Pos 2",
+    lead:"Setiap pengguna peta punya kebutuhan berbeda. Pilih syarat proyeksi yang paling penting untuk tiap kasus.",
+    type:"mc",
+    items:[
+      {q:"Seorang nakhoda butuh peta yang sudut arah kompasnya tepat supaya kapalnya tidak salah haluan.", opts:["Ekuivalen","Ekuidistan","Konform"], a:"Konform",
+        why:"Konform menjaga bentuk dan sudut tetap sama dengan aslinya. Arah kompas adalah soal sudut."},
+      {q:"Guru ingin membandingkan luas hutan di Kalimantan dan Papua secara adil di satu peta.", opts:["Ekuivalen","Ekuidistan","Konform"], a:"Ekuivalen",
+        why:"Ekuivalen berarti luas wilayah di peta sebanding dengan luas sebenarnya."},
+      {q:"Sebuah maskapai ingin mengukur jarak terbang dari Denpasar ke kota-kota lain dengan tepat.", opts:["Ekuivalen","Ekuidistan","Konform"], a:"Ekuidistan",
+        why:"Ekuidistan berarti jarak di peta sebanding dengan jarak sebenarnya."},
+      {q:"Di peta Mercator, Greenland tampak hampir sebesar Afrika, padahal Afrika sekitar 14 kali lebih luas. Syarat apa yang tidak dipenuhi peta itu?", opts:["Ekuivalen","Ekuidistan","Konform"], a:"Ekuivalen",
+        why:"Mercator itu konform (bentuk dan sudut terjaga), tetapi luas wilayah dekat kutub jadi membesar. Jadi syarat ekuivalen yang dikorbankan."},
+      {q:"Garis pantai Pulau Bali harus terlihat persis seperti bentuk aslinya.", opts:["Ekuivalen","Ekuidistan","Konform"], a:"Konform",
+        why:"Yang dijaga di sini adalah bentuk wilayah, dan itu syarat konform."}
+    ]
+  },
+  {
+    id:"bs", title:"Benar atau Salah", eyebrow:"Pos 3",
+    lead:"Tebak cepat! Tentukan apakah pernyataan berikut benar atau salah.",
+    type:"mc",
+    items:[
+      {q:"Proyeksi peta adalah cara memindahkan garis lintang dan garis bujur dari permukaan bumi yang melengkung ke bidang datar.", opts:["Benar","Salah"], a:"Benar",
+        why:"Itu pengertian proyeksi peta."},
+      {q:"Ada satu proyeksi yang bisa memenuhi syarat ekuivalen, ekuidistan, dan konform sekaligus.", opts:["Benar","Salah"], a:"Salah",
+        why:"Tidak ada proyeksi yang bisa memenuhi ketiganya sekaligus. Pembuat peta harus memilih syarat mana yang diutamakan."},
+      {q:"Distorsi pada peta terjadi karena bumi berbentuk bulat, sedangkan peta berbentuk datar.", opts:["Benar","Salah"], a:"Benar",
+        why:"Permukaan lengkung tidak bisa diratakan tanpa ada bagian yang meregang atau menyusut."},
+      {q:"Proyeksi azimutal menggunakan bidang proyeksi berbentuk kerucut.", opts:["Benar","Salah"], a:"Salah",
+        why:"Proyeksi azimutal memakai bidang datar yang menyinggung bumi di satu titik."},
+      {q:"UTM, yang banyak dipakai untuk peta Indonesia, termasuk proyeksi silinder.", opts:["Benar","Salah"], a:"Benar",
+        why:"UTM (Universal Transverse Mercator) memakai bidang silinder."},
+      {q:"Proyeksi kerucut paling cocok untuk memetakan Benua Antartika.", opts:["Benar","Salah"], a:"Salah",
+        why:"Antartika ada di kutub selatan, jadi yang paling cocok adalah proyeksi azimutal."}
+    ]
+  },
+  {
+    id:"kawasan", title:"Sortir Kawasan", eyebrow:"Pos 4",
+    lead:"Dalam peta Rencana Tata Ruang Wilayah (RTRW), lahan dibagi menjadi kawasan lindung dan kawasan budidaya. Kelompokkan setiap tempat berikut.",
+    type:"mc", shuffle:true,
+    items:[
+      {q:"Hutan di Taman Nasional Bali Barat", opts:["Kawasan lindung","Kawasan budidaya"], a:"Kawasan lindung", why:"Hutan dilindungi untuk menjaga keanekaragaman hayati dan tata air."},
+      {q:"Sempadan sungai (tanah di sepanjang tepi tukad)", opts:["Kawasan lindung","Kawasan budidaya"], a:"Kawasan lindung", why:"Sempadan sungai dilindungi agar tepi sungai tidak longsor dan aliran air terjaga."},
+      {q:"Sempadan pantai (jalur tepi pantai yang tidak boleh dibangun)", opts:["Kawasan lindung","Kawasan budidaya"], a:"Kawasan lindung", why:"Sempadan pantai melindungi pantai dari abrasi dan menjadi ruang aman dari gelombang pasang."},
+      {q:"Kawasan di sekeliling Danau Buyan", opts:["Kawasan lindung","Kawasan budidaya"], a:"Kawasan lindung", why:"Kawasan sekitar danau dilindungi agar air danau tetap terjaga."},
+      {q:"Permukiman penduduk", opts:["Kawasan lindung","Kawasan budidaya"], a:"Kawasan budidaya", why:"Permukiman adalah lahan yang dimanfaatkan untuk kegiatan manusia."},
+      {q:"Sawah yang diairi sistem subak", opts:["Kawasan lindung","Kawasan budidaya"], a:"Kawasan budidaya", why:"Sawah termasuk kawasan budidaya pertanian."},
+      {q:"Kawasan industri", opts:["Kawasan lindung","Kawasan budidaya"], a:"Kawasan budidaya", why:"Industri adalah kegiatan budidaya yang memanfaatkan lahan."},
+      {q:"Deretan hotel dan restoran di kawasan wisata", opts:["Kawasan lindung","Kawasan budidaya"], a:"Kawasan budidaya", why:"Kawasan pariwisata termasuk kawasan budidaya."}
+    ]
+  },
+  {
+    id:"rth", title:"Hitung RTH", eyebrow:"Pos 5",
+    lead:"Gunakan aturan Ruang Terbuka Hijau (RTH) untuk menghitung lima kasus kota, lalu jawab dua soal cerita penataan ruang. Kota-kota di sini hanya contoh.",
+    type:"mixed",
+    caseText:"<b>Aturan RTH di kota (UU No. 26 Tahun 2007):</b> luas RTH minimal 30% dari luas wilayah, terdiri atas 20% RTH publik dan 10% RTH privat. Ingat: 1 km² = 100 hektare (ha).",
+    items:[
+      {ctx:{label:"Kasus A", text:"Kota A memiliki luas wilayah <b>40 km²</b>."},
+       kind:"num", q:"Berapa luas RTH minimal seluruhnya?", a:12, unit:"km²", why:"30% × 40 km² = 12 km²."},
+      {kind:"num", q:"Berapa luas RTH publik minimal?", a:8, unit:"km²", why:"20% × 40 km² = 8 km²."},
+      {kind:"num", q:"Berapa luas RTH privat minimal?", a:4, unit:"km²", why:"10% × 40 km² = 4 km²."},
+      {ctx:{label:"Kasus B", text:"Kota B memiliki luas wilayah <b>60 km²</b>. Saat ini RTH publiknya baru <b>9 km²</b>."},
+       kind:"num", q:"Berapa km² lagi RTH publik yang harus ditambah agar Kota B memenuhi aturan?", a:3, unit:"km²",
+       why:"RTH publik minimal = 20% × 60 km² = 12 km². Kekurangannya 12 − 9 = 3 km²."},
+      {ctx:{label:"Kasus C", text:"Kota C memiliki luas wilayah <b>25 km²</b> dan total RTH-nya <b>5 km²</b>."},
+       kind:"num", q:"Berapa persen luas RTH Kota C dibandingkan luas wilayahnya?", a:20, unit:"%",
+       why:"(5 km² ÷ 25 km²) × 100% = 20%."},
+      {kind:"mc", q:"Apakah Kota C sudah memenuhi aturan RTH minimal?",
+        opts:["Sudah, karena RTH-nya sudah 20%","Belum, masih kurang 10% dari luas wilayah","Sudah, karena RTH privat tidak wajib"], a:"Belum, masih kurang 10% dari luas wilayah",
+        why:"Total RTH minimal 30%, sedangkan Kota C baru 20%. Masih kurang 10%, atau 2,5 km²."},
+      {ctx:{label:"Kasus D", text:"Sebuah kawasan perkotaan memiliki luas <b>1.500 hektare</b>."},
+       kind:"num", q:"Berapa luas RTH publik minimal kawasan itu dalam hektare?", a:300, unit:"ha",
+       why:"20% × 1.500 ha = 300 ha (sama dengan 3 km²)."},
+      {ctx:{label:"Kasus E", text:"Pemerintah Kota E menghitung bahwa RTH publik minimal kotanya <b>14 km²</b>."},
+       kind:"num", q:"Berapa luas wilayah Kota E?", a:70, unit:"km²",
+       why:"RTH publik = 20% dari luas wilayah, jadi luas wilayah = 14 km² ÷ 20% = 14 × 5 = 70 km²."},
+      {ctx:{label:"Soal cerita"},
+       kind:"mc", q:"Pemerintah kabupaten menertibkan bangunan liar di sempadan sungai dan memberi sanksi kepada pelanggarnya. Ini termasuk tahap penataan ruang yang mana?",
+        opts:["Perencanaan tata ruang","Pemanfaatan ruang","Pengendalian pemanfaatan ruang"], a:"Pengendalian pemanfaatan ruang",
+        why:"Penertiban dan sanksi adalah cara mengendalikan agar ruang dipakai sesuai rencana."},
+      {kind:"mc", q:"Keluargamu ingin tahu apakah rumah kalian berada di kawasan rawan bencana dan ke mana jalur evakuasinya. Peta apa yang paling tepat dibuka?",
+        opts:["Peta dunia proyeksi Mercator","Peta tata ruang (RTRW) kabupaten","Peta skala geografis Benua Asia"], a:"Peta tata ruang (RTRW) kabupaten",
+        why:"Peta tata ruang menunjukkan peruntukan lahan, kawasan rawan bencana, dan jalur evakuasi di wilayah tempat tinggal."}
+    ]
+  }
+];
+
+/* ---------- State ---------- */
+const KEY="detektif-peta-misi-penutup-v2";
+let S = {cur:0, ans:{}, checked:{}, nama:"", order:{}};
+try{ const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw)); }catch(e){}
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
+
+// urutan acak untuk pos yang ditandai shuffle (disimpan agar tetap sama)
+POS.forEach(p=>{
+  if(p.shuffle && !S.order[p.id]){
+    const idx=p.items.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    S.order[p.id]=idx;
+  }
+});
+
+const totalOf = p => p.type==="proj" ? p.items.reduce((s,it)=>s+it.parts.length,0) : p.items.length;
+const GRAND = POS.reduce((s,p)=>s+totalOf(p),0);
+const keyOf=(p,i,k)=>`${p.id}:${i}${k!==undefined?":"+k:""}`;
+const parseNum=v=>{ if(v==null) return NaN; const t=String(v).trim().replace(/[^0-9,.\-]/g,"").replace(",","."); return t===""?NaN:Number(t); };
+function isRight(p,i,k){
+  const it=p.items[i], v=S.ans[keyOf(p,i,k)];
+  if(p.type==="proj") return v===it.parts[k].a;
+  if(it.kind==="num") return Math.abs(parseNum(v)-it.a)<1e-9;
+  return v===it.a;
+}
+function scoreOf(p){
+  let s=0;
+  p.items.forEach((it,i)=>{
+    if(p.type==="proj") it.parts.forEach((_,k)=>{ if(isRight(p,i,k)) s++; });
+    else if(isRight(p,i)) s++;
+  });
+  return s;
+}
+function complete(p){
+  return p.items.every((it,i)=>{
+    if(p.type==="proj") return it.parts.every((_,k)=>S.ans[keyOf(p,i,k)]);
+    const v=S.ans[keyOf(p,i)];
+    return it.kind==="num" ? !isNaN(parseNum(v)) : !!v;
+  });
+}
+const allDone=()=>POS.every(p=>S.checked[p.id]);
+
+/* ---------- Render ---------- */
+const $tabs=document.getElementById("tabs"), $main=document.getElementById("main"), $nama=document.getElementById("nama");
+$nama.value=S.nama||"";
+$nama.addEventListener("input",()=>{S.nama=$nama.value;save(); if(S.cur===POS.length) render();});
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+function renderTabs(){
+  const tabs=POS.map((p,i)=>{
+    const done=S.checked[p.id];
+    return `<button class="tab${done?" done":""}" data-go="${i}" aria-current="${S.cur===i}">
+      <span class="n">${done?"✓":i+1}</span>${p.title}${done?` <span class="pts">${scoreOf(p)}/${totalOf(p)}</span>`:""}</button>`;
+  });
+  tabs.push(`<button class="tab${allDone()?" done":""}" data-go="${POS.length}" aria-current="${S.cur===POS.length}"><span class="n">★</span>Laporan Misi</button>`);
+  $tabs.innerHTML=tabs.join("");
+}
+
+function choiceBtns(p,i,k,opts,correct,locked){
+  const key=keyOf(p,i,k), v=S.ans[key];
+  return `<div class="choices" role="group">${opts.map(o=>`<button class="choice${locked&&o===correct?" right":""}" data-key="${key}" data-val="${esc(o)}" aria-pressed="${v===o}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>`;
+}
+function fb(ok,why,correctText){
+  return `<p class="feedback">${ok?`<b class="y">Tepat.</b> `:`<b class="n">Belum tepat.</b> ${correctText?`Jawaban yang benar: <b>${esc(correctText)}</b>. `:""}`}${why}</p>`;
+}
+
+function renderPos(pi){
+  const p=POS[pi], locked=!!S.checked[p.id];
+  const order = S.order[p.id] || p.items.map((_,i)=>i);
+  let body="";
+  if(p.type==="proj"){
+    body=`<div class="proj-grid">${p.items.map((it,i)=>{
+      const allOk=it.parts.every((_,k)=>isRight(p,i,k));
+      return `<div class="item ${locked?(allOk?"ok":"bad"):""}">
+        <p class="q"><span class="tag">${it.tag}</span></p>${it.svg}
+        ${it.parts.map((pt,k)=>`<p class="sub-q">${pt.q}</p>${choiceBtns(p,i,k,pt.opts,pt.a,locked)}`).join("")}
+        ${locked?fb(allOk,it.why, allOk?"":it.parts.map(x=>x.a).join(", ")):""}
+      </div>`;}).join("")}</div>`;
+  } else {
+    if(p.caseText) body+=`<div class="case-box"><p>${p.caseText}</p></div>`;
+    body+=`<div class="items">${order.map((i,n)=>{
+      const it=p.items[i], ok=isRight(p,i);
+      let ctrl;
+      if(it.kind==="num"){
+        const v=S.ans[keyOf(p,i)]??"";
+        ctrl=`<div class="numrow"><input id="in-${keyOf(p,i).replace(/:/g,"-")}" data-key="${keyOf(p,i)}" inputmode="decimal" placeholder="contoh: 2,5" value="${esc(v)}" ${locked?"disabled":""} aria-label="${esc(it.q)}"><span class="unit">${it.unit}</span></div>`;
+      } else ctrl=choiceBtns(p,i,undefined,it.opts,it.a,locked);
+      const ctx = it.ctx ? `<div class="case-box ctx"><p><span class="eyebrow">${it.ctx.label}</span>${it.ctx.text?`<br>${it.ctx.text}`:""}</p></div>` : "";
+      return `${ctx}<div class="item ${locked?(ok?"ok":"bad"):""}">
+        <p class="q"><span class="tag">${String(n+1).padStart(2,"0")}</span>${it.q}</p>${ctrl}
+        ${locked?fb(ok,it.why, ok?"":(it.kind==="num"?`${it.a} ${it.unit}`:it.a)):""}
+      </div>`;}).join("")}</div>`;
+  }
+  const next = pi<POS.length-1 ? `Lanjut ke Pos ${pi+2}` : "Lihat Laporan Misi";
+  const actions = locked
+    ? `<div class="actions"><span class="score-line">Skor pos ini: ${scoreOf(p)} / ${totalOf(p)}</span><button class="btn primary" data-go="${pi+1}">${next} →</button></div>`
+    : `<div class="actions"><button class="btn primary" id="check" ${complete(p)?"":"disabled"}>Periksa jawaban</button><span class="hint" id="hint">${complete(p)?"Semua soal sudah dijawab.":"Jawab semua soal dulu untuk memeriksa."}</span></div>`;
+  $main.innerHTML=`<div class="pos-head"><span class="eyebrow">${p.eyebrow} · ${totalOf(p)} poin</span></div>
+    <h2>${p.title}</h2><p class="lead">${p.lead}</p>${body}${actions}`;
+}
+
+let confirmReset=false;
+function renderReport(){
+  const got=POS.reduce((s,p)=>s+(S.checked[p.id]?scoreOf(p):0),0);
+  const pct=Math.round(got/GRAND*100);
+  const done=allDone();
+  const rank = !done ? "Misi belum selesai" : pct>=85 ? "Detektif Ahli" : pct>=60 ? "Detektif Madya" : "Detektif Pemula";
+  const msg = !done ? "Selesaikan semua pos untuk mendapatkan lencana detektif."
+    : pct>=85 ? "Hebat! Kamu sudah menguasai proyeksi peta dan peta tata ruang."
+    : pct>=60 ? "Bagus! Baca lagi penjelasan di pos yang skornya masih rendah."
+    : "Jangan menyerah. Buka lagi slide proyeksi peta dan tata ruang, lalu coba ulang misinya.";
+  $main.innerHTML=`<div class="pos-head"><span class="eyebrow">Laporan Misi</span></div>
+    <div class="report">
+      <div class="badge"><div class="big">${pct}%</div>
+        <div><div class="rank">${rank}</div><div class="hint">${esc(S.nama||"Detektif tanpa nama")} · ${got} dari ${GRAND} poin</div></div></div>
+      <p class="lead">${msg}${done?" Tunjukkan layar ini kepada guru sebagai bukti misi selesai.":""}</p>
+      <div style="overflow-x:auto"><table class="tbl"><tbody>${POS.map((p,i)=>{
+        const s=S.checked[p.id]?scoreOf(p):null, t=totalOf(p);
+        return `<tr><td>${p.eyebrow} · ${p.title}<div class="bar"><i style="width:${s==null?0:s/t*100}%"></i></div></td><td>${s==null?"belum":s+" / "+t}</td></tr>`;}).join("")}</tbody></table></div>
+      <div class="actions">${!done?`<button class="btn primary" data-go="${POS.findIndex(p=>!S.checked[p.id])}">Kerjakan pos yang tersisa →</button>`:""}
+        <button class="btn" id="reset">${confirmReset?"Yakin? Klik lagi untuk menghapus semua jawaban":"Ulangi misi dari awal"}</button></div>
+    </div>`;
+}
+
+function render(){
+  renderTabs();
+  if(S.cur>=POS.length) renderReport(); else renderPos(S.cur);
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("click",e=>{
+  const go=e.target.closest("[data-go]");
+  if(go){ S.cur=+go.dataset.go; confirmReset=false; save(); render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
+  const ch=e.target.closest(".choice");
+  if(ch && !ch.disabled){ S.ans[ch.dataset.key]=ch.dataset.val; save(); render(); return; }
+  if(e.target.id==="check"){ const p=POS[S.cur]; if(complete(p)){ S.checked[p.id]=true; save(); render(); } return; }
+  if(e.target.id==="reset"){
+    if(!confirmReset){ confirmReset=true; render(); return; }
+    confirmReset=false; S={cur:0,ans:{},checked:{},nama:S.nama,order:{}};
+    POS.forEach(p=>{ if(p.shuffle){ const idx=p.items.map((_,i)=>i); for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];} S.order[p.id]=idx; }});
+    save(); render();
+  }
+});
+document.addEventListener("input",e=>{
+  const el=e.target; if(!el.dataset||!el.dataset.key||el.tagName!=="INPUT") return;
+  S.ans[el.dataset.key]=el.value; save();
+  const p=POS[S.cur], btn=document.getElementById("check"), hint=document.getElementById("hint");
+  if(btn){ btn.disabled=!complete(p); hint.textContent=complete(p)?"Semua soal sudah dijawab.":"Jawab semua soal dulu untuk memeriksa."; }
+});
+render();
+</script>
+
+</body></html>

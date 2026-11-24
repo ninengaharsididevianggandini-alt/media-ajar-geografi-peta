@@ -1,0 +1,589 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Geo Block Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Permanent+Marker&family=Cinzel:wght@700;900&display=swap">
+<style>
+/* Layout: projector-first game HUD — header strip, team score chips, 4 board columns x 5 blocks (a single grid so blasts read across boards). Deliberately single dark theme. */
+:root{
+  color-scheme: dark;
+  --bg:#081420; --bg2:#0d1f31; --panel:#10263b; --panel2:#153150; --line:#23466a;
+  --cyan:#46d9ec; --cyan-dim:#1d6f86; --ink:#e8f4f8; --muted:#8fb0c3; --gold:#e9c46a;
+  --ok:#1fcf6a; --bad:#ef3b4b; --warn:#f5a524;
+  --t1:#ff5fa2; --t2:#ffe14d; --t3:#ff9f40; --t4:#6fe07a;
+  --f-display:"Cinzel", Georgia, serif;
+  --f-ui:"Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-marker:"Permanent Marker", "Comic Sans MS", cursive;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink); font-family:var(--f-ui); font-size:15px;
+  background-image:
+    repeating-radial-gradient(ellipse at 15% 20%, transparent 0 38px, rgba(70,217,236,.05) 39px 40px),
+    repeating-radial-gradient(ellipse at 85% 85%, transparent 0 46px, rgba(70,217,236,.04) 47px 48px);
+  background-attachment:fixed;
+}
+button{font-family:inherit; color:inherit; cursor:pointer}
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:2px solid var(--cyan); outline-offset:2px}
+.wrap{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:14px 40px; display:flex; flex-direction:column; gap:14px}
+
+/* header */
+header{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px}
+.brand{display:flex; flex-direction:column; line-height:1}
+.brand small{font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--cyan)}
+.brand h1{margin:4px 0 0; font-family:var(--f-display); font-weight:900; font-size:clamp(26px,4.2vw,40px); letter-spacing:.02em;
+  background:linear-gradient(180deg,#fff 0%,#cfe8f2 45%,#8fb0c3 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+  text-shadow:0 0 22px rgba(70,217,236,.18)}
+.brand .ep{margin-top:6px; font-size:13px; color:var(--muted); letter-spacing:.06em}
+.brand .ep b{color:var(--gold); font-weight:600}
+.brand .by{margin-top:6px; font-size:13px; color:var(--muted); letter-spacing:.03em}
+.brand .by b{color:var(--ink); font-weight:600}
+footer.credit{text-align:center; font-size:12.5px; color:var(--muted); line-height:1.6}
+footer.credit b{color:var(--ink); font-weight:600}
+.tools{display:flex; flex-wrap:wrap; gap:8px}
+.btn{border:1px solid var(--line); background:var(--panel); padding:8px 12px; border-radius:8px; font-size:13px; font-weight:600; letter-spacing:.04em}
+.btn:hover{border-color:var(--cyan-dim); background:var(--panel2)}
+.btn.primary{background:var(--cyan); color:#04202a; border-color:var(--cyan)}
+.btn.primary:hover{background:#7ae6f3}
+.btn.ghost{background:transparent}
+.btn[disabled]{opacity:.4; cursor:not-allowed}
+
+/* teams */
+.teams{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px}
+.team{display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:8px 12px; min-width:0}
+.team .note{width:34px; height:34px; flex:none; display:grid; place-items:center; font-family:var(--f-marker); font-size:18px; color:#2a1b00; transform:rotate(-4deg); box-shadow:2px 3px 0 rgba(0,0,0,.35)}
+.team .meta{min-width:0; flex:1}
+.team .nm{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.team .st{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums}
+.team .sc{font-size:24px; font-weight:700; font-variant-numeric:tabular-nums}
+
+/* arena */
+.arena{background:linear-gradient(180deg,var(--bg2),var(--bg)); border:1px solid var(--line); border-radius:14px; padding:14px; position:relative;
+  box-shadow:inset 0 0 0 1px rgba(70,217,236,.06), 0 18px 40px rgba(0,0,0,.35)}
+.arena::before,.arena::after{content:""; position:absolute; width:22px; height:22px; border:2px solid var(--cyan); opacity:.6}
+.arena::before{top:-1px; left:-1px; border-right:0; border-bottom:0; border-top-left-radius:14px}
+.arena::after{bottom:-1px; right:-1px; border-left:0; border-top:0; border-bottom-right-radius:14px}
+.grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px}
+.board{display:flex; flex-direction:column; gap:8px; min-width:0; background:rgba(8,20,32,.55); border:1px solid var(--line); border-radius:10px; padding:8px}
+.mini{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px}
+.bhead{background:var(--panel2); border:1px solid var(--cyan-dim); border-radius:8px; padding:6px 8px; text-align:center; min-width:0}
+.bhead b{display:block; font-size:12px; letter-spacing:.2em; color:var(--cyan)}
+.bhead span{display:block; font-size:13px; font-weight:600; margin-top:2px; text-wrap:balance; line-height:1.2}
+.cell{position:relative; aspect-ratio:8/5; min-height:40px; max-width:100%; border-radius:7px; border:1px solid #3a86a8; padding:0;
+  background:linear-gradient(180deg,#3aa6c6,#2a84a6); color:#062433; font-weight:700; font-size:clamp(12px,1.25vw,16px);
+  display:grid; place-items:center; transition:transform .12s ease, box-shadow .12s ease; box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 2px 0 #0d3a50}
+.cell:hover{transform:translateY(-2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 0 16px rgba(70,217,236,.45)}
+.cell .tries{position:absolute; top:5px; right:6px; display:flex; gap:3px}
+.cell .tries i{width:9px; height:9px; border-radius:50%; border:1px solid rgba(0,0,0,.45); position:relative}
+.cell .tries i::after{content:"×"; position:absolute; inset:-5px 0 0; font-style:normal; font-size:10px; color:#300; text-align:center}
+.cell.owned{border:0; background:transparent; box-shadow:none; color:#2a1b00}
+.cell.owned .sticky{position:absolute; inset:3px 6%; display:grid; place-items:center; transform:rotate(var(--r,-3deg));
+  box-shadow:3px 4px 0 rgba(0,0,0,.35); animation:slap .28s cubic-bezier(.2,1.6,.4,1)}
+.cell.owned .sticky::before{content:""; position:absolute; top:-6px; left:30%; width:40%; height:12px; background:rgba(255,255,255,.35); transform:rotate(-2deg)}
+.cell.owned .sticky em{font-style:normal; font-family:var(--f-marker); font-size:clamp(15px,1.9vw,24px); line-height:1}
+.cell.owned .sticky small{position:absolute; bottom:2px; right:4px; font-size:10px; opacity:.7}
+.cell.blast .sticky{outline:3px solid #fff; outline-offset:2px; animation:slap .28s cubic-bezier(.2,1.6,.4,1), glow 1.6s ease-in-out infinite}
+.cell.burned{background:repeating-linear-gradient(135deg,#1a2c3d 0 8px,#15253a 8px 16px); border-color:var(--line); color:var(--muted); box-shadow:none}
+.cell.burned span{font-size:11px; letter-spacing:.06em; line-height:1.2; text-align:center}
+@keyframes slap{from{transform:scale(1.5) rotate(12deg); opacity:0} to{transform:rotate(var(--r,-3deg)); opacity:1}}
+@keyframes glow{50%{outline-color:var(--gold)}}
+.legend{display:flex; flex-wrap:wrap; gap:6px 18px; font-size:12.5px; color:var(--muted); margin-top:12px}
+.legend b{color:var(--ink)}
+
+/* modal */
+.scrim{position:fixed; inset:0; background:rgba(3,10,18,.78); backdrop-filter:blur(3px); display:flex; align-items:flex-start; justify-content:center; padding:max(24px,env(safe-area-inset-top,0px)) 16px 24px; overflow-y:auto; z-index:20}
+.modal{width:100%; max-width:640px; background:var(--panel); border:1px solid var(--cyan-dim); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:14px;
+  box-shadow:0 0 0 1px rgba(70,217,236,.1), 0 30px 60px rgba(0,0,0,.5)}
+.modal.wide{max-width:900px}
+.mhead{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
+.mhead .tag{font-size:12px; letter-spacing:.22em; color:var(--cyan); text-transform:uppercase}
+.mhead h2{margin:4px 0 0; font-size:18px; line-height:1.25}
+.x{background:transparent; border:1px solid var(--line); border-radius:8px; width:34px; height:34px; flex:none; font-size:18px}
+.lbl{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+.pick{display:flex; flex-wrap:wrap; gap:8px}
+.pick button{display:flex; align-items:center; gap:8px; border:2px solid var(--line); background:var(--bg2); border-radius:10px; padding:7px 12px 7px 7px; font-weight:600}
+.pick button i{width:22px; height:22px; display:grid; place-items:center; font-style:normal; font-family:var(--f-marker); color:#2a1b00; font-size:13px}
+.pick button.on{border-color:var(--cyan); background:var(--panel2); box-shadow:0 0 12px rgba(70,217,236,.35)}
+.pick button[disabled]{opacity:.35; text-decoration:line-through}
+.qtext{font-size:clamp(17px,2.3vw,21px); line-height:1.5; background:var(--bg2); border-left:3px solid var(--cyan); padding:12px 14px; border-radius:0 8px 8px 0; margin:0}
+.disp{display:flex; align-items:center; justify-content:flex-end; gap:8px; min-height:56px; background:#06121d; border:1px solid var(--cyan-dim); border-radius:10px; padding:8px 14px;
+  font-size:28px; font-weight:700; color:var(--cyan); font-variant-numeric:tabular-nums; text-shadow:0 0 12px rgba(70,217,236,.4)}
+.disp .pre,.disp .unit{color:var(--muted); font-size:20px; text-shadow:none}
+.disp .val:empty::before{content:"0"; opacity:.25}
+.keys{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-width:360px; width:100%; margin:0 auto}
+.keys button{height:52px; border-radius:10px; border:1px solid var(--line); background:var(--bg2); font-size:20px; font-weight:600}
+.keys button:hover{border-color:var(--cyan-dim)}
+.keys button:active{transform:scale(.97)}
+.keys .del{color:var(--bad)}
+.tin{width:100%; font:inherit; font-size:20px; padding:12px 14px; border-radius:10px; border:1px solid var(--cyan-dim); background:#06121d; color:var(--ink)}
+.row{display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center}
+.row .sp{flex:1}
+.note-msg{font-size:14px; padding:10px 12px; border-radius:8px; background:rgba(239,59,75,.12); border:1px solid rgba(239,59,75,.4)}
+.note-msg.ok{background:rgba(31,207,106,.12); border-color:rgba(31,207,106,.45)}
+.teacher{border-top:1px dashed var(--line); padding-top:12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:13px; color:var(--muted)}
+.teacher .btn{font-size:12px; padding:6px 10px}
+.key{color:var(--gold); font-weight:600}
+
+/* flash */
+.flash{position:fixed; inset:0; z-index:40; display:grid; place-items:center; animation:fin .15s ease}
+.flash.ok{background:var(--ok)} .flash.bad{background:var(--bad)} .flash.time{background:var(--warn)}
+.flash.time .ring{color:#4a2c00; font-size:clamp(44px,8vw,76px)}
+.timer{display:flex; align-items:center; gap:10px}
+.timer .tbar{flex:1; height:10px; border-radius:6px; background:#06121d; border:1px solid var(--line); overflow:hidden}
+.timer .tbar i{display:block; height:100%; width:100%; background:var(--cyan); transform-origin:left; transition:transform .25s linear, background .2s}
+.timer.low .tbar i{background:var(--bad)}
+.timer .tsec{min-width:62px; text-align:right; font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--cyan)}
+.timer.low .tsec{color:var(--bad); animation:beat .5s ease infinite alternate}
+.timer.paused .tsec{color:var(--muted); animation:none}
+.timer .btn{font-size:12px; padding:5px 10px}
+@keyframes beat{to{transform:scale(1.12)}}
+.flash .in{display:flex; flex-direction:column; align-items:center; gap:18px; animation:pop .35s cubic-bezier(.2,1.5,.4,1)}
+.flash .ring{width:clamp(90px,16vw,150px); aspect-ratio:1; border-radius:50%; background:#fff; display:grid; place-items:center; font-size:clamp(50px,9vw,86px); font-weight:700; color:#0b1d12}
+.flash.bad .ring{color:#4a0a10}
+.flash .word{font-size:clamp(34px,7vw,72px); font-weight:700; letter-spacing:.3em; color:#fff; text-shadow:0 3px 0 rgba(0,0,0,.2)}
+.flash .sub{color:#fff; font-size:18px; font-weight:600; opacity:.9}
+.blastbar{position:fixed; left:0; right:0; top:40%; z-index:41; text-align:center; pointer-events:none; animation:bl 1.9s ease forwards}
+.blastbar div{display:inline-block; font-family:var(--f-display); font-weight:900; font-size:clamp(46px,10vw,110px); letter-spacing:.06em; color:#fff;
+  -webkit-text-stroke:3px var(--c,#ff5fa2); text-shadow:0 0 30px var(--c,#ff5fa2); transform:rotate(-5deg)}
+.blastbar p{margin:6px 0 0; font-weight:700; font-size:20px; color:#fff; text-shadow:0 2px 8px #000}
+@keyframes fin{from{opacity:0}}
+@keyframes pop{from{transform:scale(.5); opacity:0}}
+@keyframes bl{0%{transform:scale(2.2); opacity:0} 15%{transform:scale(1); opacity:1} 80%{opacity:1} 100%{opacity:0; transform:translateY(-20px)}}
+
+/* scoreboard */
+.sb{width:100%; border-collapse:separate; border-spacing:0 8px; font-variant-numeric:tabular-nums}
+.sb th{font-size:11px; letter-spacing:.18em; color:var(--muted); text-align:center; font-weight:600; padding:0 6px}
+.sb td{background:var(--panel2); padding:10px 8px; text-align:center; font-size:18px; font-weight:700; border-top:1px solid var(--cyan-dim); border-bottom:1px solid var(--cyan-dim)}
+.sb td:first-child{border-left:1px solid var(--cyan-dim); border-radius:10px 0 0 10px}
+.sb td:last-child{border-right:1px solid var(--cyan-dim); border-radius:0 10px 10px 0; color:var(--cyan); font-size:22px}
+.sb tr.r1 td{border-color:var(--gold); background:linear-gradient(90deg,rgba(233,196,106,.25),var(--panel2))}
+.sb tr.r1 td:first-child{color:var(--gold)}
+.sb .tn{display:flex; align-items:center; gap:8px; justify-content:flex-start; text-align:left}
+.sb .tn i{width:22px; height:22px; flex:none; display:grid; place-items:center; font-style:normal; font-family:var(--f-marker); color:#2a1b00; font-size:13px}
+.sbwrap{overflow-x:auto}
+
+/* rules & editor */
+.rules{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:8px; line-height:1.55; max-width:65ch}
+.rules b{color:var(--cyan)}
+.field{display:flex; flex-direction:column; gap:4px; min-width:0}
+.field input,.field select,.field textarea{font:inherit; font-size:14px; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg2); color:var(--ink); width:100%}
+.field textarea{resize:vertical; min-height:58px}
+.ed-board{border:1px solid var(--line); border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:10px}
+.ed-board > .row2{display:grid; grid-template-columns:1fr 2fr; gap:8px}
+.ed-q{display:grid; grid-template-columns:40px 1fr; gap:8px; border-top:1px dashed var(--line); padding-top:10px}
+.ed-q .no{font-weight:700; color:var(--cyan); padding-top:26px}
+.ed-q .cols{display:grid; grid-template-columns:120px 1fr 90px; gap:8px}
+.tabs{display:flex; gap:6px; flex-wrap:wrap}
+.tabs button{border:1px solid var(--line); background:var(--bg2); border-radius:8px; padding:6px 12px; font-weight:600}
+.tabs button.on{border-color:var(--cyan); color:var(--cyan)}
+.hint{font-size:12.5px; color:var(--muted); line-height:1.45}
+.toast{position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:30; background:var(--panel2); border:1px solid var(--cyan-dim);
+  border-radius:10px; padding:10px 14px; max-width:min(560px,calc(100% - 32px)); font-size:14px; line-height:1.45; box-shadow:0 10px 30px rgba(0,0,0,.4); animation:fin .2s ease}
+
+@media (max-width:900px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} .cell{font-size:14px} }
+@media (max-width:640px){
+  .grid{gap:8px} .board{padding:6px} .mini{gap:4px} .cell{font-size:12px}
+  .arena{padding:10px}
+  .bhead span{font-size:11px}
+  .bhead b{font-size:10px; letter-spacing:.12em}
+  .cell{aspect-ratio:4/3; min-height:38px}
+  .ed-board > .row2,.ed-q .cols{grid-template-columns:1fr}
+  .ed-q{grid-template-columns:1fr} .ed-q .no{padding-top:0}
+  .brand h1{font-size:28px}
+}
+@media (prefers-reduced-motion:reduce){ *{animation:none!important; transition:none!important} }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <small>Media Pembelajaran Interaktif · Geografi</small>
+      <h1>Geo Block Arena</h1>
+      <div class="ep">Episode: <b>Peta &amp; Skala Block Blast</b></div>
+      <div class="by">oleh <b>Ni Nengah Arsidi Devi Anggandini</b></div>
+    </div>
+    <div class="tools">
+      <button class="btn primary" id="bScore">Papan Skor</button>
+      <button class="btn" id="bRules">Cara Main</button>
+      <button class="btn" id="bUndo" title="Batalkan aksi terakhir">↶ Batalkan</button>
+      <button class="btn" id="bEdit">Edit Soal</button>
+      <button class="btn" id="bSet">Tim &amp; Reset</button>
+      <button class="btn ghost" id="bSound" aria-pressed="true">🔊</button>
+    </div>
+  </header>
+
+  <section class="teams" id="teams" aria-label="Skor tim"></section>
+
+  <section class="arena">
+    <div class="grid" id="grid"></div>
+    <div class="legend">
+      <span><b>1 blok benar</b> = 1 poin</span>
+      <span><b>Blast</b> = 3 blok berurutan milik satu tim dalam satu board, mendatar (1 baris penuh) atau menurun</span>
+      <span><b>Skor akhir</b> = poin × 2 kalau tim punya minimal 1 blast</span>
+    </div>
+  </section>
+  <footer class="credit">Media Pembelajaran Interaktif Geo Block Arena · Peta &amp; Skala<br>Dibuat oleh <b>Ni Nengah Arsidi Devi Anggandini</b></footer>
+</div>
+
+<div id="layer"></div>
+
+<script>
+(function(){
+const COLORS=["var(--t1)","var(--t2)","var(--t3)","var(--t4)"];
+const DEFAULT_BOARDS=[
+ {key:"A",title:"Jenis Peta",focus:"Klasifikasi peta berdasarkan isi dan skala",qs:[
+  {q:"Peta yang menggambarkan bentuk relief tinggi rendahnya muka bumi menggunakan garis kontur disebut…",type:"teks",accept:["Peta Topografi","Topografi"],explain:"Peta topografi memakai garis kontur untuk menunjukkan tinggi rendah permukaan bumi."},
+  {q:"Peta curah hujan, peta kepadatan penduduk, dan peta jenis tanah digolongkan sebagai peta…",type:"teks",accept:["Peta Tematik","Tematik","Peta Khusus","Khusus"],explain:"Peta tematik (peta khusus) hanya menampilkan satu tema atau gejala tertentu."},
+  {q:"Berdasarkan skalanya, peta berskala 1:100 hingga 1:5.000 seperti peta sertifikat tanah milik warga disebut peta…",type:"teks",accept:["Peta Kadaster","Kadaster","Peta Kadastral","Kadastral"],explain:"Peta kadaster berskala 1:100 – 1:5.000, dipakai untuk batas kepemilikan tanah."},
+  {q:"Peta berskala 1:500.000 hingga 1:1.000.000, seperti peta provinsi atau negara bagian, tergolong ke dalam jenis peta berskala…",type:"teks",accept:["Skala Kecil","Kecil","Peta Skala Kecil","Peta Berskala Kecil"],explain:"Skala 1:500.000 – 1:1.000.000 termasuk peta skala kecil."},
+  {q:"Peta yang datanya tidak mudah berubah seiring waktu, seperti peta geologi dan peta persebaran jenis tanah, disebut peta…",type:"teks",accept:["Peta Stasioner","Stasioner","Peta Statis","Statis"],explain:"Peta stasioner memuat data yang relatif tetap dari waktu ke waktu."},
+  {q:"Peta yang menggambarkan kenampakan permukaan bumi secara umum, seperti relief, sungai, kota, dan jalan, dalam satu peta disebut peta…",type:"teks",accept:["Peta Umum","Umum"],explain:"Peta umum menampilkan kenampakan alam dan buatan secara umum, misalnya peta dunia atau peta Indonesia di atlas."},
+  {q:"Peta yang datanya mudah berubah dari waktu ke waktu, seperti peta arus lalu lintas dan peta perkembangan permukiman, disebut peta…",type:"teks",accept:["Peta Dinamis","Dinamis","Peta Dinamik","Dinamik"],explain:"Peta dinamis memuat data yang cepat berubah sehingga perlu diperbarui secara berkala."},
+  {q:"Berdasarkan skalanya, peta berskala 1:5.000 hingga 1:250.000, seperti peta kecamatan atau kabupaten, disebut peta berskala…",type:"teks",accept:["Skala Besar","Besar","Peta Skala Besar","Peta Berskala Besar"],explain:"Skala 1:5.000 – 1:250.000 termasuk peta skala besar."},
+  {q:"Peta berskala 1:250.000 hingga 1:500.000 tergolong ke dalam jenis peta berskala…",type:"teks",accept:["Skala Sedang","Sedang","Peta Skala Sedang","Peta Berskala Sedang"],explain:"Skala 1:250.000 – 1:500.000 termasuk peta skala sedang."},
+  {q:"Peta berskala lebih kecil dari 1:1.000.000, seperti peta benua dan peta dunia, disebut peta…",type:"teks",accept:["Peta Geografis","Geografis","Skala Geografis","Peta Geografi","Geografi"],explain:"Peta dengan skala lebih kecil dari 1:1.000.000 disebut peta geografis."},
+  {q:"Berdasarkan bentuknya, peta yang dibuat tiga dimensi sehingga tinggi rendahnya permukaan bumi bisa diraba disebut peta…",type:"teks",accept:["Peta Timbul","Timbul","Peta Relief","Relief"],explain:"Peta timbul (peta relief) dibuat menyerupai bentuk asli permukaan bumi."},
+  {q:"Berdasarkan bentuknya, peta yang disimpan dan ditampilkan melalui komputer atau ponsel, seperti Google Maps, disebut peta…",type:"teks",accept:["Peta Digital","Digital"],explain:"Peta digital disimpan dalam bentuk data dan ditampilkan di layar perangkat."},
+  {q:"Kumpulan beberapa peta yang disusun dan dijilid menjadi sebuah buku disebut…",type:"teks",accept:["Atlas"],explain:"Atlas adalah kumpulan peta yang dibukukan."},
+  {q:"Garis pada peta topografi yang menghubungkan tempat-tempat dengan ketinggian yang sama disebut garis…",type:"teks",accept:["Kontur","Garis Kontur"],explain:"Garis kontur menghubungkan titik-titik yang ketinggiannya sama."},
+  {q:"Selisih ketinggian antara dua garis kontur yang berdekatan pada peta topografi disebut…",type:"teks",accept:["Interval Kontur","Kontur Interval","Selang Kontur","Contour Interval"],explain:"Interval kontur adalah beda tinggi antara dua garis kontur yang berurutan."}]},
+ {key:"B",title:"Komponen Peta",focus:"Elemen-elemen yang wajib ada dalam peta standar",qs:[
+  {q:"Komponen peta yang berfungsi menjelaskan makna atau keterangan dari simbol-simbol yang terdapat pada peta adalah…",type:"teks",accept:["Legenda","Legend"],explain:"Legenda menjelaskan arti simbol-simbol pada peta."},
+  {q:"Peta kecil yang disisipkan pada peta utama untuk menunjukkan lokasi daerah yang dipetakan terhadap daerah yang lebih luas disebut…",type:"teks",accept:["Inset","Peta Inset"],explain:"Inset menunjukkan letak daerah yang dipetakan di dalam wilayah yang lebih luas."},
+  {q:"Komponen peta yang memberikan panduan mata angin, biasanya ditunjukkan dengan tanda panah ke arah Utara, disebut…",type:"teks",accept:["Orientasi","Petunjuk Arah","Arah Mata Angin","Mata Angin","Tanda Arah"],explain:"Orientasi (petunjuk arah) biasanya berupa panah yang menunjuk ke utara."},
+  {q:"Aturan penulisan pada peta di mana nama perairan (sungai, danau, laut) harus ditulis menggunakan huruf miring (italic) disebut…",type:"teks",accept:["Lettering"],explain:"Lettering adalah aturan penulisan nama dan huruf pada peta."},
+  {q:"Simbol luasan (area) berwarna hijau pada peta umum biasanya digunakan untuk merepresentasikan kenampakan alam berupa…",type:"teks",accept:["Dataran Rendah"],explain:"Warna hijau pada peta umum menandakan dataran rendah."},
+  {q:"Komponen peta yang menunjukkan perbandingan antara jarak di peta dengan jarak sebenarnya di lapangan disebut…",type:"teks",accept:["Skala","Skala Peta"],explain:"Skala menunjukkan perbandingan jarak peta dengan jarak sebenarnya."},
+  {q:"Komponen peta yang mencerminkan isi dan wilayah yang digambarkan, biasanya diletakkan di bagian atas peta, disebut…",type:"teks",accept:["Judul Peta","Judul"],explain:"Judul peta menggambarkan isi dan wilayah peta."},
+  {q:"Garis yang membatasi bagian tepi gambar peta sehingga peta terlihat rapi disebut…",type:"teks",accept:["Garis Tepi","Garis Tepi Peta","Tepi Peta"],explain:"Garis tepi membingkai gambar peta."},
+  {q:"Jaringan garis lintang dan garis bujur pada peta yang dipakai untuk menentukan letak suatu tempat disebut garis…",type:"teks",accept:["Astronomis","Garis Astronomis","Koordinat","Garis Koordinat","Koordinat Geografis","Lintang dan Bujur","Garis Lintang dan Bujur"],explain:"Garis astronomis (lintang dan bujur) menunjukkan letak astronomis suatu tempat."},
+  {q:"Komponen peta yang memberi keterangan dari mana data peta diperoleh dan kapan peta dibuat disebut…",type:"teks",accept:["Sumber dan Tahun Pembuatan","Sumber Data dan Tahun Pembuatan","Sumber dan Tahun Pembuatan Peta","Sumber Data","Sumber Peta","Sumber"],explain:"Sumber dan tahun pembuatan peta menunjukkan asal data dan kapan peta dibuat."},
+  {q:"Simbol pada peta yang dipakai untuk menggambarkan sungai, jalan raya, rel kereta api, dan batas wilayah disebut simbol…",type:"teks",accept:["Garis","Simbol Garis"],explain:"Sungai, jalan, rel, dan batas wilayah digambar dengan simbol garis."},
+  {q:"Warna biru tua pada peta umum digunakan untuk menggambarkan…",type:"teks",accept:["Laut Dalam","Perairan Dalam","Laut yang Dalam"],explain:"Semakin tua warna biru, semakin dalam perairannya. Biru tua berarti laut dalam."},
+  {q:"Warna cokelat tua pada peta umum digunakan untuk menggambarkan…",type:"teks",accept:["Pegunungan Tinggi","Pegunungan","Gunung Tinggi","Daerah Pegunungan","Pegunungan Sangat Tinggi"],explain:"Cokelat tua menandakan pegunungan tinggi. Semakin tua warnanya, semakin tinggi tempatnya."},
+  {q:"Menurut aturan lettering, nama kenampakan di daratan seperti gunung, kota, dan provinsi ditulis dengan huruf…",type:"teks",accept:["Tegak","Huruf Tegak","Cetak Tegak","Huruf Cetak Tegak"],explain:"Nama kenampakan daratan ditulis dengan huruf tegak, sedangkan nama perairan dengan huruf miring."},
+  {q:"Skala yang dituliskan dalam bentuk angka perbandingan, misalnya 1:50.000, disebut skala…",type:"teks",accept:["Numerik","Skala Numerik","Angka","Skala Angka","Pecahan","Skala Pecahan"],explain:"Skala numerik ditulis sebagai angka perbandingan, misalnya 1:50.000."}]},
+ {key:"C",title:"Hitungan Skala Dasar",focus:"Rumus Jarak Peta (JP), Jarak Sebenarnya (JS), dan Skala (S)",qs:[
+  {q:"Jarak antara kota X dan Y di peta adalah 4 cm. Jika skala peta adalah 1:500.000, berapakah jarak sebenarnya dalam satuan kilometer?",type:"angka",num:20,unit:"km",explain:"4 cm × 500.000 = 2.000.000 cm = 20 km"},
+  {q:"Jarak sebenarnya kota A ke kota B adalah 30 km. Jika digambar pada peta dengan skala 1:1.000.000, berapakah jaraknya di peta?",type:"angka",num:3,unit:"cm",explain:"3.000.000 cm ÷ 1.000.000 = 3 cm"},
+  {q:"Jarak antara desa P dan desa Q di peta adalah 5 cm, sedangkan jarak sebenarnya adalah 10 km. Berapa skala peta tersebut?",type:"skala",num:200000,unit:"",explain:"10 km = 1.000.000 cm; 1.000.000 ÷ 5 = 200.000 → 1:200.000"},
+  {q:"Pada peta berskala 1:2.500.000, jarak dua titik adalah 2 cm. Berapakah jarak sebenarnya di lapangan?",type:"angka",num:50,unit:"km",explain:"2 cm × 2.500.000 = 5.000.000 cm = 50 km"},
+  {q:"Sebuah jalan raya memiliki panjang sebenarnya 150 km. Jika jalan tersebut digambar dengan skala 1:3.000.000, berapa panjangnya di peta?",type:"angka",num:5,unit:"cm",explain:"15.000.000 cm ÷ 3.000.000 = 5 cm"},
+  {q:"Jarak dua kota pada peta berskala 1:250.000 adalah 6 cm. Berapa kilometer jarak sebenarnya?",type:"angka",num:15,unit:"km",explain:"6 cm × 250.000 = 1.500.000 cm = 15 km"},
+  {q:"Jarak sebenarnya dua kota adalah 40 km. Berapa jaraknya pada peta berskala 1:2.000.000?",type:"angka",num:2,unit:"cm",explain:"4.000.000 cm ÷ 2.000.000 = 2 cm"},
+  {q:"Jarak dua pelabuhan di peta 8 cm, sedangkan jarak sebenarnya 40 km. Berapa skala peta tersebut?",type:"skala",num:500000,unit:"",explain:"40 km = 4.000.000 cm; 4.000.000 ÷ 8 = 500.000 → 1:500.000"},
+  {q:"Pada peta berskala 1:100.000, jarak dari sekolah ke pantai adalah 7 cm. Berapa kilometer jarak sebenarnya?",type:"angka",num:7,unit:"km",explain:"7 cm × 100.000 = 700.000 cm = 7 km"},
+  {q:"Jarak sebenarnya dua desa adalah 12 km. Berapa jaraknya pada peta berskala 1:200.000?",type:"angka",num:6,unit:"cm",explain:"1.200.000 cm ÷ 200.000 = 6 cm"},
+  {q:"Jarak dua kota di peta 3 cm, sedangkan jarak sebenarnya 60 km. Berapa skala peta tersebut?",type:"skala",num:2000000,unit:"",explain:"60 km = 6.000.000 cm; 6.000.000 ÷ 3 = 2.000.000 → 1:2.000.000"},
+  {q:"Pada peta berskala 1:1.000.000, jarak dua kota adalah 2,5 cm. Berapa kilometer jarak sebenarnya?",type:"angka",num:25,unit:"km",explain:"2,5 cm × 1.000.000 = 2.500.000 cm = 25 km"},
+  {q:"Panjang sebuah sungai adalah 9 km. Berapa panjang sungai itu pada peta berskala 1:50.000?",type:"angka",num:18,unit:"cm",explain:"900.000 cm ÷ 50.000 = 18 cm"},
+  {q:"Jarak dua bukit di peta 12 cm, sedangkan jarak sebenarnya 3 km. Berapa skala peta tersebut?",type:"skala",num:25000,unit:"",explain:"3 km = 300.000 cm; 300.000 ÷ 12 = 25.000 → 1:25.000"},
+  {q:"Pada peta berskala 1:750.000, jarak dua kota adalah 9 cm. Berapa kilometer jarak sebenarnya?",type:"angka",num:67.5,unit:"km",explain:"9 cm × 750.000 = 6.750.000 cm = 67,5 km"}]},
+ {key:"D",title:"Hitungan Skala Lanjutan",focus:"Aplikasi jarak dan penyebut skala",qs:[
+  {q:"Sebuah kawasan hutan lindung memiliki panjang aktual 45 km. Di atas sebuah peta rancangan tata ruang, kawasan ini digambar sepanjang 15 cm. Berapa skala peta rancangan tersebut?",type:"skala",num:300000,unit:"",explain:"4.500.000 cm ÷ 15 cm = 300.000 → 1:300.000"},
+  {q:"Jarak lurus rute penerbangan helikopter dari Kota A melintasi teluk menuju Kota C adalah 120 km. Jika perencana wilayah menggambar rute tersebut pada peta berskala 1:1.500.000, berapakah panjang rute tersebut di atas peta?",type:"angka",num:8,unit:"cm",explain:"12.000.000 cm ÷ 1.500.000 = 8 cm"},
+  {q:"Dalam peta mitigasi bencana berskala 1:25.000, jarak dari titik kumpul warga ke posko aman terukur sepanjang 14 cm. Berapa kilometer jarak sebenarnya yang harus ditempuh warga?",type:"angka",num:3.5,unit:"km",explain:"14 cm × 25.000 = 350.000 cm = 3,5 km"},
+  {q:"Jarak sebenarnya antara Pelabuhan dan Kawasan Industri adalah 24 km. Wilayah tersebut akan dicetak ulang ke dalam buku atlas saku, di mana tata letaknya mengharuskan jarak kedua tempat tersebut digambar persis 6 cm. Berapa skala peta pada atlas saku tersebut?",type:"skala",num:400000,unit:"",explain:"2.400.000 cm ÷ 6 cm = 400.000 → 1:400.000"},
+  {q:"Jaringan rel kereta api memiliki panjang 60 km. Pada Peta Provinsi A, rel ini digambar menggunakan skala 1:3.000.000. Jika jaringan rel yang sama dipindahkan ke Peta Kabupaten B yang berskala 1:1.200.000, berapakah jarak rel tersebut di atas Peta Kabupaten B?",type:"angka",num:5,unit:"cm",explain:"6.000.000 cm ÷ 1.200.000 = 5 cm"},
+  {q:"Sebuah peta berskala 1:200.000 diperbesar 2 kali. Berapa skala peta yang baru?",type:"skala",num:100000,unit:"",explain:"Diperbesar berarti penyebut dibagi: 200.000 ÷ 2 = 100.000 → 1:100.000"},
+  {q:"Sebuah peta berskala 1:50.000 diperkecil 5 kali. Berapa skala peta yang baru?",type:"skala",num:250000,unit:"",explain:"Diperkecil berarti penyebut dikali: 50.000 × 5 = 250.000 → 1:250.000"},
+  {q:"Pada peta berskala 1:400.000, jarak dua kota 5 cm. Jika peta itu diperbesar 2 kali, berapa jarak kedua kota pada peta yang baru?",type:"angka",num:10,unit:"cm",explain:"Skala baru 1:200.000. JS = 5 × 400.000 = 2.000.000 cm; JP baru = 2.000.000 ÷ 200.000 = 10 cm"},
+  {q:"Pada peta berskala 1:300.000, jarak rumah ke kota adalah 4 cm. Jika ditempuh dengan sepeda motor berkecepatan rata-rata 40 km/jam, berapa menit waktu tempuhnya?",type:"angka",num:18,unit:"menit",explain:"JS = 4 × 300.000 = 1.200.000 cm = 12 km; waktu = 12 ÷ 40 = 0,3 jam = 18 menit"},
+  {q:"Skala grafis pada sebuah peta menunjukkan bahwa 1 cm mewakili 5 km. Berapa skala numerik peta tersebut?",type:"skala",num:500000,unit:"",explain:"5 km = 500.000 cm, jadi 1 cm : 500.000 cm → 1:500.000"},
+  {q:"Sebidang lahan berbentuk persegi digambar pada peta berskala 1:10.000 dengan panjang sisi 3 cm. Berapa hektare luas lahan sebenarnya?",type:"angka",num:9,unit:"ha",explain:"Sisi = 3 × 10.000 = 30.000 cm = 300 m; luas = 300 × 300 = 90.000 m² = 9 ha"},
+  {q:"Pada peta A berskala 1:250.000, jarak dua desa adalah 6 cm. Pada peta B, jarak yang sama digambar 2 cm. Berapa skala peta B?",type:"skala",num:750000,unit:"",explain:"JS = 6 × 250.000 = 1.500.000 cm; skala B = 1.500.000 ÷ 2 = 750.000 → 1:750.000"},
+  {q:"Jarak dua kota 36 km digambar 9 cm pada sebuah peta. Pada peta yang sama, panjang sebuah danau 2 cm. Berapa kilometer panjang danau sebenarnya?",type:"angka",num:8,unit:"km",explain:"Skala = 3.600.000 ÷ 9 = 1:400.000; danau = 2 × 400.000 = 800.000 cm = 8 km"},
+  {q:"Pada peta berskala 1:5.000, jarak rumah ke sekolah adalah 6 cm. Berapa meter jarak sebenarnya?",type:"angka",num:300,unit:"m",explain:"6 cm × 5.000 = 30.000 cm = 300 m"},
+  {q:"Kereta api berkecepatan 80 km/jam menempuh jarak dua stasiun dalam 45 menit. Jika jarak kedua stasiun di peta 12 cm, berapa skala peta tersebut?",type:"skala",num:500000,unit:"",explain:"JS = 80 × 0,75 = 60 km = 6.000.000 cm; skala = 6.000.000 ÷ 12 = 500.000 → 1:500.000"}]}
+];
+const NB=4, PER=15, BC=3, BR=5; // 4 board, 15 blok per board, 3 kolom x 5 baris
+const clone=o=>JSON.parse(JSON.stringify(o));
+const store={get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const SKEY="gba-state-v2";
+
+let S; // state
+function freshCells(){const c={};for(let b=0;b<NB;b++)for(let i=0;i<PER;i++)c[b+"-"+i]={owner:null,tried:[],burned:false,rot:(Math.random()*8-4).toFixed(1)};return c}
+function defaultTeams(n){return ["Tim A","Tim B","Tim C","Tim D"].slice(0,n).map((name,i)=>({name,letter:"ABCD"[i]}))}
+function init(saved){
+  const ok=saved&&saved.cells&&saved.boards&&saved.boards[0]&&saved.boards[0].qs.length===PER&&saved.cells[(NB-1)+"-"+(PER-1)];
+  S = ok ? saved : {boards:clone(DEFAULT_BOARDS),teams:defaultTeams(4),cells:freshCells(),history:[],sound:true,timer:30};
+  if(!S.history) S.history=[];
+  if(typeof S.timer!=="number") S.timer=30;
+}
+function save(){store.set(SKEY,{...S,history:S.history.slice(-30)})}
+
+/* ---------- scoring ---------- */
+function computeBlasts(){
+  const own=(b,r,c)=>S.cells[b+"-"+(r*BC+c)].owner;
+  const res=S.teams.map(()=>({blast:0,cells:new Set()}));
+  const scan=(seq)=>{let i=0;while(i<seq.length){const o=own(...seq[i]);let j=i;while(j+1<seq.length&&o!==null&&own(...seq[j+1])===o)j++;
+      if(o!==null&&j-i+1>=3&&res[o]){res[o].blast++;for(let k=i;k<=j;k++){const [b,r,c]=seq[k];res[o].cells.add(b+"-"+(r*BC+c))}}i=j+1}};
+  for(let b=0;b<NB;b++){
+    for(let r=0;r<BR;r++)scan([...Array(BC)].map((_,c)=>[b,r,c]));
+    for(let c=0;c<BC;c++)scan([...Array(BR)].map((_,r)=>[b,r,c]));
+  }
+  return res;
+}
+function scores(){
+  const bl=computeBlasts();
+  return S.teams.map((t,i)=>{const poin=Object.values(S.cells).filter(c=>c.owner===i).length;const blast=bl[i].blast;return {i,t,poin,blast,total:poin*(blast>0?2:1),cells:bl[i].cells}});
+}
+
+/* ---------- render ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function render(){
+  const sc=scores();
+  $("#teams").innerHTML=sc.map(s=>{return `<div class="team"><div class="note" style="background:${COLORS[s.i]}">${esc(s.t.letter)}</div>
+    <div class="meta"><div class="nm">${esc(s.t.name)}</div><div class="st">${s.poin} poin · ${s.blast} blast</div></div><div class="sc">${s.total}</div></div>`}).join("");
+  const blastCells=new Set();sc.forEach(s=>s.cells.forEach(c=>blastCells.add(c)));
+  let h="";
+  S.boards.forEach((B,b)=>{
+    h+=`<div class="board"><div class="bhead"><b>BOARD ${esc(B.key)}</b><span>${esc(B.title)}</span></div><div class="mini">`;
+    for(let i=0;i<PER;i++){
+      const id=b+"-"+i,c=S.cells[id],no=i+1;
+      if(c.owner!==null){const t=S.teams[c.owner];
+        h+=`<button class="cell owned${blastCells.has(id)?" blast":""}" data-id="${id}" aria-label="Board ${esc(B.key)} nomor ${no}, milik ${esc(t.name)}"><div class="sticky" style="background:${COLORS[c.owner]};--r:${c.rot}deg"><em>${esc(t.letter)}</em><small>${no}</small></div></button>`;
+      }else if(c.burned){h+=`<button class="cell burned" data-id="${id}" aria-label="Board ${esc(B.key)} nomor ${no}, hangus"><span>No ${no}<br>hangus</span></button>`}
+      else{h+=`<button class="cell" data-id="${id}" aria-label="Board ${esc(B.key)} nomor ${no}">No ${no}${c.tried.length?`<span class="tries">${c.tried.map(t=>`<i style="background:${COLORS[t]}"></i>`).join("")}</span>`:""}</button>`}
+    }
+    h+=`</div></div>`;
+  });
+  $("#grid").innerHTML=h;
+  $("#bUndo").disabled=!S.history.length;
+  $("#bSound").textContent=S.sound?"🔊":"🔇";
+  save();
+}
+function snapshot(){S.history.push(JSON.stringify({cells:S.cells}));if(S.history.length>40)S.history.shift()}
+
+/* ---------- sound ---------- */
+let AC=null;
+function tone(seq){if(!S.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();let t=AC.currentTime;
+  seq.forEach(([f,d,type])=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type||"triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.25,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.02);t+=d*.8})}catch(e){}}
+const sfx={ok:()=>tone([[660,.12],[880,.12],[1320,.28]]),bad:()=>tone([[220,.22,"sawtooth"],[160,.35,"sawtooth"]]),blast:()=>tone([[523,.1,"square"],[659,.1,"square"],[784,.1,"square"],[1047,.4,"square"]]),tap:()=>tone([[900,.04,"sine"]])};
+
+/* ---------- answer checking ---------- */
+const norm=s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+const stripPeta=s=>s.replace(/^(peta )?(berskala |skala )?/,"");
+function lev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=[...Array(n+1).keys()];for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+function checkText(input,accept){const x=norm(input);if(!x)return false;
+  return accept.some(a=>{const y=norm(a);if(x===y||stripPeta(x)===stripPeta(y))return true;const L=y.length;const tol=L>=10?2:L>=6?1:0;return lev(x,y)<=tol||lev(stripPeta(x),stripPeta(y))<=tol})}
+function parseNum(s){if(!s)return NaN;return parseFloat(s.replace(/\./g,"").replace(",","."))}
+function fmtNum(n){const [i,d]=String(n).split(".");return i.replace(/\B(?=(\d{3})+(?!\d))/g,".")+(d?","+d:"")}
+function keyText(q){if(q.type==="teks")return q.accept[0];if(q.type==="skala")return "1 : "+fmtNum(q.num);return fmtNum(q.num)+" "+(q.unit||"")}
+
+/* ---------- modal helpers ---------- */
+function openModal(html,cls){const l=$("#layer");l.innerHTML=`<div class="scrim" id="scrim"><div class="modal ${cls||""}" role="dialog" aria-modal="true">${html}</div></div>`;
+  $("#scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeModal()});const f=l.querySelector("[autofocus]");if(f)setTimeout(()=>f.focus(),30);}
+function closeModal(){stopTimer();$("#layer").innerHTML="";document.removeEventListener("keydown",padKeys)}
+/* ---------- timer ---------- */
+let TM=null; // {left,total,paused,iv}
+function stopTimer(){if(TM){clearInterval(TM.iv);TM=null}}
+function startTimer(){
+  stopTimer();if(!S.timer)return;
+  TM={left:S.timer,total:S.timer,paused:false,iv:null};drawTimer();
+  TM.iv=setInterval(()=>{if(!TM||TM.paused)return;TM.left--;drawTimer();
+    if(TM.left>0&&TM.left<=5)tone([[1200,.06,"square"]]);
+    if(TM.left<=0){stopTimer();timeUp()}},1000);
+}
+function drawTimer(){const w=$("#timer");if(!w||!TM)return;
+  w.classList.toggle("low",TM.left<=5);w.classList.toggle("paused",TM.paused);
+  $("#tfill").style.transform=`scaleX(${Math.max(0,TM.left/TM.total)})`;$("#tsec").textContent=TM.left+" dtk";
+  $("#tpause").textContent=TM.paused?"Lanjut":"Jeda"}
+async function timeUp(){
+  document.removeEventListener("keydown",padKeys);
+  const tn=cur&&cur.team!==null?S.teams[cur.team].name:"";
+  $("#layer").innerHTML="";
+  await flash("time",tn?tn+" · kembali ke antrean":"Kembali ke antrean");
+  toast("Waktu habis. Blok tetap terbuka, tidak ada pengurangan poin.",3500);cur=null;
+}
+let toastT;function toast(html,ms){document.querySelectorAll(".toast").forEach(t=>t.remove());const d=document.createElement("div");d.className="toast";d.innerHTML=html;document.body.appendChild(d);clearTimeout(toastT);toastT=setTimeout(()=>d.remove(),ms||4500)}
+function flash(ok,sub){return new Promise(res=>{const time=ok==="time";const d=document.createElement("div");d.className="flash "+(time?"time":ok?"ok":"bad");
+  d.innerHTML=`<div class="in"><div class="ring">${time?"⏱":ok?"✓":"✕"}</div><div class="word">${time?"WAKTU HABIS":ok?"BENAR":"SALAH"}</div>${sub?`<div class="sub">${esc(sub)}</div>`:""}</div>`;
+  document.body.appendChild(d);(time?sfx.bad:ok?sfx.ok:sfx.bad)();const done=()=>{d.remove();res()};d.addEventListener("click",done);setTimeout(()=>{if(d.isConnected)done()},1300)})}
+function blastFx(team){const d=document.createElement("div");d.className="blastbar";d.style.setProperty("--c",COLORS[team]);
+  d.innerHTML=`<div>BLAST!</div><p>${esc(S.teams[team].name)}: poin dikali 2</p>`;document.body.appendChild(d);sfx.blast();setTimeout(()=>d.remove(),2000)}
+
+/* ---------- question flow ---------- */
+let cur=null; // {id,b,r,team,val}
+function openCell(id){
+  const c=S.cells[id];const [b,r]=id.split("-").map(Number);const B=S.boards[b];const q=B.qs[r];
+  if(c.owner!==null||c.burned){
+    const who=c.owner!==null?`Dijawab benar oleh <b>${esc(S.teams[c.owner].name)}</b>.`:"Blok hangus, tidak ada tim yang menjawab benar.";
+    openModal(`<div class="mhead"><div><div class="tag">Board ${esc(B.key)} · No ${r+1}</div><h2>${esc(B.title)}</h2></div><button class="x" data-close aria-label="Tutup">×</button></div>
+      <p class="qtext">${esc(q.q)}</p><div class="note-msg ok">${who}<br>Kunci: <span class="key">${esc(keyText(q))}</span>${q.explain?`<br><span class="hint">${esc(q.explain)}</span>`:""}</div>
+      <div class="teacher">Guru: <button class="btn" id="reopen">Buka ulang blok ini</button></div>`);
+    $("#reopen").onclick=()=>{snapshot();S.cells[id]={owner:null,tried:[],burned:false,rot:c.rot};render();closeModal()};
+    bindClose();return;
+  }
+  sfx.tap();
+  const avail=S.teams.map((t,i)=>i).filter(i=>!c.tried.includes(i));
+  cur={id,b,r,team:avail.length===1?avail[0]:null,val:""};
+  drawQ();
+}
+function drawQ(msg){
+  const {id,b,r}=cur;const c=S.cells[id];const B=S.boards[b];const q=B.qs[r];
+  const teamBtns=S.teams.map((t,i)=>`<button data-team="${i}" class="${cur.team===i?"on":""}" ${c.tried.includes(i)?"disabled":""}><i style="background:${COLORS[i]}">${esc(t.letter)}</i>${esc(t.name)}</button>`).join("");
+  let input;
+  if(q.type==="teks"){input=`<label class="lbl" for="tin">Jawaban</label><input id="tin" class="tin" autocomplete="off" placeholder="Ketik jawaban…" value="${esc(cur.val)}">`}
+  else{input=`<div class="lbl">Jawaban${q.type==="skala"?" (isi penyebut skala)":""}</div>
+    <div class="disp">${q.type==="skala"?'<span class="pre">1 :</span>':""}<span class="val" id="val"></span>${q.unit?`<span class="unit">${esc(q.unit)}</span>`:""}</div>
+    <div class="keys">${["1","2","3","4","5","6","7","8","9",q.type==="skala"?"":",","0","⌫"].map(k=>k?`<button data-k="${k}" class="${k==="⌫"?"del":""}" aria-label="${k==="⌫"?"Hapus":k}">${k}</button>`:"<span></span>").join("")}</div>`}
+  openModal(`<div class="mhead"><div><div class="tag">Board ${esc(B.key)} · No ${r+1}</div><h2>${esc(B.title)}</h2></div><button class="x" data-close aria-label="Tutup">×</button></div>
+    ${S.timer?`<div class="timer" id="timer"><div class="tbar"><i id="tfill"></i></div><span class="tsec" id="tsec">${S.timer} dtk</span><button class="btn" id="tpause">Jeda</button><button class="btn" id="tplus">+15</button></div>`:""}
+    <div><div class="lbl" style="margin-bottom:6px">Tim yang menjawab</div><div class="pick" id="pick">${teamBtns}</div></div>
+    <p class="qtext">${esc(q.q)}</p>
+    ${msg?`<div class="note-msg">${msg}</div>`:""}
+    ${input}
+    <div class="row"><button class="btn" data-close>Batal</button><span class="sp"></span><button class="btn primary" id="submit" style="padding:10px 26px;font-size:15px">SUBMIT</button></div>
+    <div class="teacher">Guru:
+      <button class="btn" id="reveal">Lihat kunci</button><span id="keyout"></span>
+      ${cur.lastWrong!=null?`<button class="btn" id="override">Anggap benar (${esc(S.teams[cur.lastWrong].name)})</button>`:""}
+      <button class="btn" id="burn">Hanguskan blok</button></div>`);
+  bindClose();
+  startTimer();
+  if($("#tpause")){$("#tpause").onclick=()=>{if(TM){TM.paused=!TM.paused;drawTimer()}};$("#tplus").onclick=()=>{if(TM){TM.left+=15;TM.total=Math.max(TM.total,TM.left);drawTimer()}}}
+  document.querySelectorAll("#pick button").forEach(bt=>bt.onclick=()=>{cur.team=+bt.dataset.team;document.querySelectorAll("#pick button").forEach(x=>x.classList.toggle("on",x===bt));sfx.tap()});
+  if(q.type==="teks"){const t=$("#tin");t.focus();t.addEventListener("input",()=>cur.val=t.value);t.addEventListener("keydown",e=>{if(e.key==="Enter")submit()})}
+  else{updDisp();document.querySelectorAll(".keys button").forEach(k=>k.onclick=()=>press(k.dataset.k));document.addEventListener("keydown",padKeys)}
+  $("#submit").onclick=submit;
+  $("#reveal").onclick=()=>{$("#keyout").innerHTML=`<span class="key">${esc(keyText(q))}</span>`};
+  $("#burn").onclick=()=>{snapshot();S.cells[cur.id].burned=true;render();closeModal();toast(`Blok hangus. Kunci: <span class="key">${esc(keyText(q))}</span>`)};
+  const ov=$("#override");if(ov)ov.onclick=()=>{const t=cur.lastWrong;S.cells[cur.id].tried=S.cells[cur.id].tried.filter(x=>x!==t);cur.team=t;win(true)};
+}
+function bindClose(){document.querySelectorAll("[data-close]").forEach(b=>b.onclick=closeModal)}
+function curQ(){return S.boards[cur.b].qs[cur.r]}
+function updDisp(){const v=$("#val");if(!v)return;const q=curQ();v.textContent=cur.val?(q.type==="skala"?fmtNum(cur.val):(()=>{const [i,d]=cur.val.split(",");return i.replace(/\B(?=(\d{3})+(?!\d))/g,".")+(d!==undefined?","+d:"")})()):""}
+function press(k){if(k==="⌫")cur.val=cur.val.slice(0,-1);else if(k===","){if(!cur.val.includes(","))cur.val=(cur.val||"0")+","}else if(cur.val.length<12){cur.val=(cur.val==="0"?"":cur.val)+k}sfx.tap();updDisp()}
+function padKeys(e){if(!cur||!$("#val"))return;if(/^[0-9]$/.test(e.key))press(e.key);else if((e.key===","||e.key===".")&&curQ().type!=="skala")press(",");else if(e.key==="Backspace")press("⌫");else if(e.key==="Enter"){e.preventDefault();submit()}}
+async function submit(){
+  const q=curQ();
+  if(cur.team===null){const p=$("#pick");p.animate([{transform:"translateX(-6px)"},{transform:"translateX(6px)"},{transform:"none"}],{duration:250});toast("Pilih dulu tim yang menjawab.",2200);return}
+  if(!String(cur.val).trim()){toast("Jawaban masih kosong.",2000);return}
+  stopTimer();
+  let ok;
+  if(q.type==="teks")ok=checkText(cur.val,q.accept);
+  else{const x=q.type==="skala"?parseInt(cur.val,10):parseNum(cur.val);ok=Math.abs(x-q.num)<1e-9}
+  if(ok)return win(false);
+  document.removeEventListener("keydown",padKeys);
+  snapshot();const c=S.cells[cur.id];const t=cur.team;c.tried.push(t);
+  const left=S.teams.map((_,i)=>i).filter(i=>!c.tried.includes(i));
+  await flash(false,S.teams[t].name);
+  if(!left.length){c.burned=true;render();closeModal();toast(`Semua tim sudah mencoba. Blok hangus.<br>Kunci: <span class="key">${esc(keyText(q))}</span>${q.explain?`<br><span class="hint">${esc(q.explain)}</span>`:""}`,7000);return}
+  render();const wrongVal=cur.val;cur.lastWrong=t;cur.team=left.length===1?left[0]:null;cur.val="";
+  drawQ(`<b>${esc(S.teams[t].name)}</b> menjawab “${esc(q.type==="skala"?"1 : "+fmtNum(wrongVal):wrongVal)}”, salah. Giliran tim lain.`);
+}
+async function win(fromOverride){
+  document.removeEventListener("keydown",padKeys);
+  const q=curQ(),t=cur.team,id=cur.id;
+  if(!fromOverride)snapshot();
+  const before=scores()[t].blast;
+  S.cells[id].owner=t;
+  closeModal();
+  await flash(true,S.teams[t].name);
+  render();
+  const after=scores()[t].blast;
+  if(after>before)blastFx(t);
+  toast(`<b>${esc(S.teams[t].name)}</b> menandai Board ${esc(S.boards[cur.b].key)} No ${cur.r+1}.<br>Kunci: <span class="key">${esc(keyText(q))}</span>${q.explain?`<br><span class="hint">${esc(q.explain)}</span>`:""}`,6500);
+  cur=null;
+}
+
+/* ---------- scoreboard ---------- */
+function showScore(){
+  const sc=scores().sort((a,b)=>b.total-a.total||b.poin-a.poin);
+  let rank=0,prev=null;
+  const rows=sc.map((s,k)=>{if(prev===null||s.total!==prev.total||s.poin!==prev.poin)rank=k+1;prev=s;
+    return `<tr class="${rank===1&&s.total>0?"r1":""}"><td>${rank===1&&s.total>0?"♛ 1":rank}</td><td><div class="tn"><i style="background:${COLORS[s.i]}">${esc(s.t.letter)}</i>${esc(s.t.name)}</div></td><td>${s.poin}</td><td>${s.blast}</td><td>${s.total}</td></tr>`}).join("");
+  const left=Object.values(S.cells).filter(c=>c.owner===null&&!c.burned).length;
+  openModal(`<div class="mhead"><div><div class="tag">Peta &amp; Skala Block Blast</div><h2>Papan Skor</h2></div><button class="x" data-close aria-label="Tutup">×</button></div>
+    <div class="sbwrap"><table class="sb"><thead><tr><th>RANK</th><th style="text-align:left">TIM</th><th>POIN</th><th>BLAST</th><th>SKOR AKHIR</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="hint" style="margin:0">Skor akhir = poin × 2 bila tim punya minimal 1 blast. ${left?`Masih ada ${left} blok terbuka.`:"Semua blok sudah selesai."}</p>`);
+  bindClose();
+}
+function showRules(){
+  openModal(`<div class="mhead"><div><div class="tag">Panduan</div><h2>Cara Main</h2></div><button class="x" data-close aria-label="Tutup">×</button></div>
+  <ol class="rules">
+    <li>Ada <b>4 board</b> (A–D) dengan tipe soal berbeda. Setiap board berisi 15 blok soal (3 kolom × 5 baris).</li>
+    <li>Tim memilih blok, lalu memilih nama timnya dan mengisi jawaban. Soal teori diketik, soal hitungan diisi lewat keypad. Untuk soal skala, isi penyebutnya saja (contoh: 200000 untuk 1:200.000).</li>
+    <li>Kalau jawabannya <b>benar</b>, layar menjadi hijau dan blok ditempeli sticky note warna tim (1 poin).</li>
+    <li>Kalau jawabannya <b>salah</b>, layar menjadi merah dan tim itu tidak boleh mencoba blok yang sama lagi. Tim lain boleh bergantian menjawab. Kalau semua tim salah, blok hangus.</li>
+    <li><b>Blast:</b> 3 blok atau lebih yang berurutan milik tim yang sama, di dalam satu board, mendatar (1 baris penuh) atau menurun.</li>
+    <li><b>Skor akhir</b> = poin × 2 bila tim punya minimal 1 blast.</li>
+    <li><b>Timer:</b> perwakilan punya waktu terbatas (bawaan 30 detik) untuk menginput jawaban. Kalau waktu habis, perwakilan kembali ke barisan antrean paling belakang. Blok tetap terbuka dan tidak ada pengurangan poin. Durasi bisa diubah atau dimatikan di menu Tim &amp; Reset.</li>
+    <li>Guru bisa melihat kunci, menganggap benar jawaban yang ejaannya sedikit berbeda, menghanguskan blok, atau membatalkan aksi terakhir.</li>
+  </ol>`);bindClose();
+}
+
+/* ---------- settings ---------- */
+function showSettings(){
+  const n=S.teams.length;
+  openModal(`<div class="mhead"><div><div class="tag">Pengaturan</div><h2>Tim &amp; Reset</h2></div><button class="x" data-close aria-label="Tutup">×</button></div>
+    <div class="field"><label class="lbl" for="tdur">Timer menjawab di tablet</label><select id="tdur">${[[0,"Mati"],[20,"20 detik"],[30,"30 detik"],[45,"45 detik"],[60,"60 detik"],[90,"90 detik"]].map(([v,l])=>`<option value="${v}" ${v===S.timer?"selected":""}>${l}</option>`).join("")}</select></div>
+    <div class="field"><label class="lbl" for="tcount">Jumlah tim</label><select id="tcount">${[2,3,4].map(k=>`<option ${k===n?"selected":""}>${k}</option>`).join("")}</select></div>
+    <div id="tnames" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px"></div>
+    <p class="hint" style="margin:0">Mengubah jumlah tim akan mengosongkan board. Nama tim bisa diganti kapan saja.</p>
+    <div class="row"><button class="btn" id="resetB">Kosongkan board</button><span class="sp"></span><button class="btn primary" id="saveT">Simpan</button></div>
+    <div id="confirm"></div>`);
+  bindClose();
+  const drawNames=()=>{const k=+$("#tcount").value;const cur=S.teams;$("#tnames").innerHTML=[...Array(k)].map((_,i)=>`<div class="field"><label class="lbl" for="tn${i}">Tim ${"ABCD"[i]}</label><input id="tn${i}" value="${esc((cur[i]||{}).name||"Tim "+"ABCD"[i])}" maxlength="24"></div>`).join("")};
+  drawNames();$("#tcount").onchange=drawNames;
+  const ask=(txt,fn)=>{$("#confirm").innerHTML=`<div class="note-msg">${txt} <div class="row" style="margin-top:8px"><button class="btn" id="cNo">Tidak</button><button class="btn primary" id="cYes">Ya, lanjutkan</button></div></div>`;$("#cNo").onclick=()=>$("#confirm").innerHTML="";$("#cYes").onclick=fn};
+  $("#resetB").onclick=()=>ask("Semua sticky note dan skor akan dihapus.",()=>{snapshot();S.cells=freshCells();render();closeModal();toast("Board sudah dikosongkan.")});
+  $("#saveT").onclick=()=>{const k=+$("#tcount").value;const names=[...Array(k)].map((_,i)=>$("#tn"+i).value.trim()||"Tim "+"ABCD"[i]);
+    S.timer=+$("#tdur").value;
+    const apply=()=>{const reset=k!==S.teams.length;S.teams=names.map((name,i)=>({name,letter:"ABCD"[i]}));if(reset){S.cells=freshCells();S.history=[]}render();closeModal();toast(reset?"Tim diperbarui dan board dikosongkan.":"Pengaturan disimpan.")};
+    if(k!==S.teams.length&&Object.values(S.cells).some(c=>c.owner!==null||c.tried.length||c.burned))ask("Jumlah tim berubah, jadi board akan dikosongkan.",apply);else apply()};
+}
+
+/* ---------- editor ---------- */
+let edTab=0,draft=null;
+function showEditor(){draft=clone(S.boards);edTab=0;drawEditor()}
+function drawEditor(){
+  const B=draft[edTab];
+  const qhtml=B.qs.map((q,r)=>{const key=q.type==="teks"?q.accept.join(", "):q.type==="skala"?String(q.num):fmtNum(q.num);
+    return `<div class="ed-q"><div class="no">No ${r+1}</div><div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+      <div class="field"><label class="lbl" for="q${r}">Soal</label><textarea id="q${r}">${esc(q.q)}</textarea></div>
+      <div class="cols">
+        <div class="field"><label class="lbl" for="ty${r}">Tipe</label><select id="ty${r}"><option value="teks" ${q.type==="teks"?"selected":""}>Teks</option><option value="angka" ${q.type==="angka"?"selected":""}>Angka</option><option value="skala" ${q.type==="skala"?"selected":""}>Skala 1:n</option></select></div>
+        <div class="field"><label class="lbl" for="k${r}">Kunci</label><input id="k${r}" value="${esc(key)}"></div>
+        <div class="field"><label class="lbl" for="u${r}">Satuan</label><input id="u${r}" value="${esc(q.unit||"")}" placeholder="km / cm"></div>
+      </div>
+      <div class="field"><label class="lbl" for="ex${r}">Pembahasan (muncul setelah dijawab)</label><input id="ex${r}" value="${esc(q.explain||"")}"></div>
+    </div></div>`}).join("");
+  openModal(`<div class="mhead"><div><div class="tag">Bank Soal</div><h2>Edit Soal</h2></div><button class="x" data-close aria-label="Tutup">×</button></div>
+    <div class="tabs">${draft.map((b,i)=>`<button data-tab="${i}" class="${i===edTab?"on":""}">Board ${esc(b.key)}</button>`).join("")}</div>
+    <div class="ed-board">
+      <div class="row2"><div class="field"><label class="lbl" for="bt">Judul board</label><input id="bt" value="${esc(B.title)}" maxlength="32"></div>
+      <div class="field"><label class="lbl" for="bf">Fokus materi</label><input id="bf" value="${esc(B.focus||"")}"></div></div>
+      ${qhtml}
+    </div>
+    <p class="hint" style="margin:0"><b>Teks</b>: tulis semua jawaban yang diterima, pisahkan dengan koma (salah ketik 1–2 huruf tetap diterima). <b>Angka</b>: pakai koma untuk desimal, misalnya 3,5. <b>Skala</b>: tulis penyebutnya saja, misalnya 200000.</p>
+    <div class="row"><button class="btn" id="edDefault">Kembalikan soal bawaan</button><span class="sp"></span><button class="btn" data-close>Batal</button><button class="btn primary" id="edSave">Simpan soal</button></div>`,"wide");
+  bindClose();
+  document.querySelectorAll("[data-tab]").forEach(t=>t.onclick=()=>{readEditor();edTab=+t.dataset.tab;drawEditor()});
+  $("#edSave").onclick=()=>{if(!readEditor())return;S.boards=draft;render();closeModal();toast("Soal disimpan.")};
+  $("#edDefault").onclick=()=>{draft=clone(DEFAULT_BOARDS);drawEditor();toast("Soal bawaan dimuat. Tekan Simpan soal untuk memakainya.",3000)};
+}
+function readEditor(){
+  const B=draft[edTab];B.title=$("#bt").value.trim()||B.title;B.focus=$("#bf").value.trim();
+  for(let r=0;r<PER;r++){const q=B.qs[r];q.q=$("#q"+r).value.trim();q.type=$("#ty"+r).value;q.unit=$("#u"+r).value.trim();q.explain=$("#ex"+r).value.trim();const k=$("#k"+r).value.trim();
+    if(q.type==="teks"){q.accept=k.split(",").map(s=>s.trim()).filter(Boolean);if(!q.accept.length){toast(`Board ${B.key} No ${r+1}: kunci jawaban masih kosong.`);return false}}
+    else{const n=q.type==="skala"?parseInt(k.replace(/^1\s*:\s*/,"").replace(/\D/g,""),10):parseNum(k);if(!isFinite(n)){toast(`Board ${B.key} No ${r+1}: kunci harus berupa angka.`);return false}q.num=n;if(q.type==="skala")q.unit=""}}
+  return true;
+}
+
+/* ---------- wiring ---------- */
+$("#grid").addEventListener("click",e=>{const c=e.target.closest(".cell");if(c)openCell(c.dataset.id)});
+$("#bScore").onclick=showScore;$("#bRules").onclick=showRules;$("#bSet").onclick=showSettings;$("#bEdit").onclick=showEditor;
+$("#bUndo").onclick=()=>{const h=S.history.pop();if(h){const o=JSON.parse(h);S.cells=o.cells||o;render();toast("Aksi terakhir dibatalkan.",2000)}};
+$("#bSound").onclick=()=>{S.sound=!S.sound;render()};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+
+function start(data){init((data&&data.state)||store.get(SKEY));render()}
+try{window.claude?.hot?.snapshot?.(()=>({state:S}))}catch(e){}
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+</script>
+
+</body></html>

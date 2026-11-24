@@ -1,0 +1,741 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Detektif Peta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#EEF4F2; --surface:#FFFFFF; --surface-2:#E2ECE9; --ink:#09211D; --ink-2:#3E5752;
+  --line:#C8D8D3; --teal:#2F6B6F; --teal-soft:#CFE7E6; --amber:#FFB200; --amber-soft:#FFF1CC;
+  --ok:#1D7F46; --ok-soft:#DDF2E4; --bad:#B63A26; --bad-soft:#FBE3DE; --hero:#09211D; --hero-ink:#F2F8F6;
+  --sheet:#FFFDF7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0B1916; --surface:#12261F; --surface-2:#1A3530; --ink:#E3EFEB; --ink-2:#A5BCB6;
+    --line:#2B4943; --teal:#86CFCC; --teal-soft:#1D3B38; --amber:#FFC23D; --amber-soft:#3A2F12;
+    --ok:#5BCB8A; --ok-soft:#173826; --bad:#FF8A73; --bad-soft:#3E1D17; --hero:#06110F; --hero-ink:#F2F8F6;
+    --sheet:#FBF8EE;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0B1916; --surface:#12261F; --surface-2:#1A3530; --ink:#E3EFEB; --ink-2:#A5BCB6;
+  --line:#2B4943; --teal:#86CFCC; --teal-soft:#1D3B38; --amber:#FFC23D; --amber-soft:#3A2F12;
+  --ok:#5BCB8A; --ok-soft:#173826; --bad:#FF8A73; --bad-soft:#3E1D17; --hero:#06110F; --hero-ink:#F2F8F6;
+  --sheet:#FBF8EE;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"Barlow",system-ui,sans-serif;font-size:16px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px}
+h1,h2,h3{font-family:"League Spartan","Barlow",sans-serif;line-height:1.1;text-wrap:balance;margin:0}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid var(--amber);outline-offset:2px}
+
+/* hero */
+.hero{background:var(--hero);color:var(--hero-ink);padding-block:28px 22px}
+.hero .wrap{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.brand{display:flex;gap:16px;align-items:center}
+.stamp{width:58px;height:58px;flex:none;border:3px solid var(--amber);border-radius:50%;display:grid;place-items:center}
+.hero h1{font-size:clamp(34px,6vw,54px);font-weight:800;letter-spacing:.01em}
+.hero h1 span{color:#FFB200}
+.hero p{margin:4px 0 0;color:#BFD6D0;font-size:15px}
+.mission{font-size:15px;color:#DCEBE7;max-width:420px}
+.mission b{color:#FFB200;font-weight:600}
+
+/* tabs */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.tabs .wrap{display:flex;gap:6px;overflow-x:auto;padding-block:10px;scrollbar-width:thin}
+.tab{flex:none;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 14px 7px 7px;font-weight:600;font-size:15px}
+.tab .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);font-family:"League Spartan",sans-serif;font-size:14px}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab[aria-selected="true"] .n{background:var(--amber);color:#09211D}
+
+/* stations */
+main{padding-block:22px 48px}
+.station{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(280px,1fr);gap:22px;align-items:start}
+.station-head{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.station-head h2{font-size:clamp(24px,3.4vw,32px);font-weight:700}
+.station-head p{margin:0;color:var(--ink-2);max-width:62ch}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:700}
+@media (max-width:860px){.station{grid-template-columns:1fr}}
+
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:8px;box-shadow:0 1px 0 rgba(0,0,0,.04),0 10px 30px -18px rgba(9,33,29,.45)}
+.sheet svg{display:block;width:100%;height:auto;touch-action:manipulation}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:22px;font-weight:700}
+.muted{color:var(--ink-2)}
+.small{font-size:14px}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;font-weight:600;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:#09211D}
+
+.info .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--amber-soft);color:var(--ink);padding:3px 8px;border-radius:5px}
+.info dl{margin:0;display:grid;gap:10px}
+.info dt{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--teal)}
+.info dd{margin:2px 0 0}
+
+.btn{border:0;border-radius:8px;padding:10px 16px;font-weight:700;background:var(--ink);color:var(--bg)}
+.btn.alt{background:var(--surface-2);color:var(--ink)}
+.btn.amber{background:var(--amber);color:#09211D}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+.prompt{font-family:"League Spartan",sans-serif;font-size:clamp(26px,3.6vw,34px);font-weight:800;color:var(--ink)}
+.prompt small{display:block;font-family:"Barlow",sans-serif;font-size:14px;font-weight:600;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase}
+.dots{display:flex;gap:6px}
+.dots i{width:14px;height:14px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line)}
+.dots i.ok{background:var(--ok);border-color:var(--ok)}
+.dots i.bad{background:var(--bad);border-color:var(--bad)}
+.dots i.now{border:2px solid var(--amber)}
+
+.fb{border-radius:8px;padding:12px 14px;font-weight:500}
+.fb.ok{background:var(--ok-soft);color:var(--ink);border-left:0}
+.fb.bad{background:var(--bad-soft);color:var(--ink)}
+.fb.note{background:var(--surface-2)}
+.fb b.okc{color:var(--ok)} .fb b.badc{color:var(--bad)}
+
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.check{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-weight:600;font-size:15px;background:var(--surface)}
+.check input{width:18px;height:18px;accent-color:#2F6B6F}
+.check.hit{background:var(--ok-soft);border-color:var(--ok)}
+.check.miss{background:var(--amber-soft);border-color:var(--amber)}
+.check.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.result-list{margin:0;padding-left:18px;display:grid;gap:6px}
+
+.measure{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:15px}
+.measure dt{color:var(--ink-2)} .measure dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.big{font-family:"League Spartan",sans-serif;font-size:32px;font-weight:800;font-variant-numeric:tabular-nums}
+.field{display:flex;align-items:stretch;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface);max-width:280px}
+.field input{flex:1;min-width:0;border:0;padding:10px 12px;font:600 18px "Barlow",sans-serif;background:transparent;color:var(--ink)}
+.field span{padding:10px 12px;background:var(--surface-2);font-weight:700;color:var(--ink-2)}
+.steps{font-variant-numeric:tabular-nums;background:var(--surface-2);border-radius:8px;padding:12px 14px;display:grid;gap:4px;font-size:15px}
+.steps b{font-weight:700}
+
+.zoom{grid-column:1/-1;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:grid;gap:12px}
+.zoom-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr);gap:18px;align-items:center}
+@media (max-width:860px){.zoom-grid{grid-template-columns:1fr}}
+.zoom svg{width:100%;height:auto;display:block;background:var(--sheet);border-radius:8px;border:1px solid var(--line)}
+.eq{display:grid;gap:6px;font-size:15px;font-variant-numeric:tabular-nums}
+.eq .k{font-size:28px;font-family:"League Spartan",sans-serif;font-weight:800}
+
+.practice{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,1fr);gap:22px;align-items:start}
+@media (max-width:860px){.practice{grid-template-columns:1fr}}
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px;display:grid;gap:16px}
+.qtype{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.qtext{font-size:clamp(19px,2.3vw,23px);font-weight:500;line-height:1.4}
+.qtext b{font-weight:700}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.opt{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:10px;font-weight:600;text-align:left}
+.opt.ok{background:var(--ok-soft);border-color:var(--ok)}
+.opt.bad{background:var(--bad-soft);border-color:var(--bad)}
+.score{display:flex;gap:14px;flex-wrap:wrap}
+.score div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;min-width:110px}
+.score b{display:block;font-family:"League Spartan",sans-serif;font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
+.score span{font-size:13px;color:var(--ink-2);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.ref{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:8px;font-size:15px}
+.ref table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+.ref td{padding:4px 0;border-bottom:1px solid var(--line)}
+.ref td:last-child{text-align:right;color:var(--ink-2)}
+
+/* svg states */
+.hl{fill:#FFB200;fill-opacity:.16;stroke:#E39E00;stroke-width:5;pointer-events:none}
+.hl.line{fill:none;stroke-width:6;stroke-linecap:round}
+.hl.okc{fill:#1D7F46;stroke:#1D7F46}
+.hl.okc.line{fill:none}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{stroke-opacity:.35;fill-opacity:.05}}
+.gone{display:none}
+.hit{fill:transparent;cursor:pointer}
+.hitline{fill:none;stroke:transparent;stroke-width:18;pointer-events:stroke;cursor:pointer}
+.tapx{pointer-events:none}
+.town-hit{fill:transparent;cursor:pointer}
+.sel-ring{fill:none;stroke:#E39E00;stroke-width:4;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none}}
+footer{padding-block:0 30px;color:var(--ink-2);font-size:13px}
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brand">
+      <div class="stamp" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 34 34"><polygon points="17,2 23,30 17,24 11,30" fill="#FFB200"/><polygon points="17,2 17,24 11,30" fill="#F2F8F6"/></svg>
+      </div>
+      <div>
+        <h1>Detektif <span>Peta</span></h1>
+        <p>Komponen &amp; Skala Peta · Geografi Kelas X · SMA Negeri 1 Singaraja</p>
+      </div>
+    </div>
+    <p class="mission"><b>Misi hari ini:</b> selidiki peta Provinsi Bali. Selesaikan lima pos berikut secara berurutan, sendiri atau bersama kelompokmu.</p>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Pos kegiatan">
+  <div class="wrap" role="tablist">
+    <button class="tab" role="tab" id="t1" aria-controls="p1" aria-selected="true"><span class="n">1</span>Jelajah Komponen</button>
+    <button class="tab" role="tab" id="t2" aria-controls="p2" aria-selected="false"><span class="n">2</span>Tebak Cepat</button>
+    <button class="tab" role="tab" id="t3" aria-controls="p3" aria-selected="false"><span class="n">3</span>Peta Rusak</button>
+    <button class="tab" role="tab" id="t4" aria-controls="p4" aria-selected="false"><span class="n">4</span>Ukur Jarak</button>
+    <button class="tab" role="tab" id="t5" aria-controls="p5" aria-selected="false"><span class="n">5</span>Latihan Skala</button>
+  </div>
+</nav>
+
+<main class="wrap">
+  <!-- POS 1 -->
+  <section class="station" id="p1" role="tabpanel" aria-labelledby="t1">
+    <div class="station-head">
+      <span class="eyebrow">Pos 1</span><h2>Jelajah Komponen</h2>
+      <p>Ketuk bagian peta atau pilih nama komponen untuk melihat fungsinya.</p>
+    </div>
+    <div class="sheet" id="map1"></div>
+    <div class="panel info">
+      <div class="chips" id="chips1"></div>
+      <div id="info1" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- POS 2 -->
+  <section class="station" id="p2" role="tabpanel" aria-labelledby="t2" hidden>
+    <div class="station-head">
+      <span class="eyebrow">Pos 2</span><h2>Tebak Cepat</h2>
+      <p>Ketuk komponen yang diminta pada peta. Ada 8 komponen yang harus kamu temukan.</p>
+    </div>
+    <div class="sheet" id="map2"></div>
+    <div class="panel">
+      <div class="dots" id="dots2" aria-hidden="true"></div>
+      <div class="prompt" id="prompt2"></div>
+      <div id="fb2" aria-live="polite"></div>
+      <div class="row"><button class="btn" id="next2" hidden>Lanjut</button><button class="btn alt" id="restart2">Ulangi dari awal</button></div>
+    </div>
+  </section>
+
+  <!-- POS 3 -->
+  <section class="station" id="p3" role="tabpanel" aria-labelledby="t3" hidden>
+    <div class="station-head">
+      <span class="eyebrow">Pos 3</span><h2>Peta Rusak</h2>
+      <p>Tiga komponen hilang dari peta ini. Temukan yang hilang, lalu periksa jawabanmu.</p>
+    </div>
+    <div class="sheet" id="map3"></div>
+    <div class="panel">
+      <h3>Komponen apa yang hilang?</h3>
+      <div class="checks" id="checks3"></div>
+      <div class="row"><button class="btn" id="check3">Periksa</button><button class="btn alt" id="new3">Peta rusak baru</button></div>
+      <div id="fb3" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- POS 4 -->
+  <section class="station" id="p4" role="tabpanel" aria-labelledby="t4" hidden>
+    <div class="station-head">
+      <span class="eyebrow">Pos 4</span><h2>Ukur Jarak</h2>
+      <p>Ketuk dua tempat pada peta. Jarak di peta sudah diukur untukmu. Hitung jarak sebenarnya dengan skala 1 : 750.000.</p>
+    </div>
+    <div class="sheet" id="map4"></div>
+    <div class="panel">
+      <dl class="measure">
+        <dt>Tempat A</dt><dd id="a4">Ketuk tempat pertama</dd>
+        <dt>Tempat B</dt><dd id="b4">–</dd>
+        <dt>Skala peta</dt><dd>1 : 750.000</dd>
+      </dl>
+      <div>
+        <div class="muted small">Jarak di peta</div>
+        <div class="big" id="jp4">– cm</div>
+      </div>
+      <label for="in4" class="small muted">Jarak sebenarnya menurut hitunganmu</label>
+      <div class="field"><input id="in4" inputmode="decimal" autocomplete="off" placeholder="contoh: 61,5" disabled><span>km</span></div>
+      <div class="row"><button class="btn" id="check4" disabled>Periksa</button><button class="btn alt" id="rand4">Pilih pasangan acak</button></div>
+      <div id="fb4" aria-live="polite"></div>
+    </div>
+
+    <div class="zoom">
+      <div>
+        <span class="eyebrow">Percobaan</span>
+        <h3 style="font-size:22px;margin-top:4px">Kalau peta diperbesar, apa yang berubah?</h3>
+        <p class="muted" style="margin:6px 0 0">Jarak Singaraja ke Denpasar digambar pada ukuran peta yang berbeda. Perhatikan skala angka, skala grafis, dan jarak sebenarnya.</p>
+      </div>
+      <div class="chips" id="zoomchips"></div>
+      <div class="zoom-grid">
+        <svg id="zoomsvg" viewBox="0 0 700 170" role="img" aria-label="Garis jarak dan skala grafis pada ukuran peta terpilih"></svg>
+        <div class="eq" id="zoomeq"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POS 5 -->
+  <section class="station" id="p5" role="tabpanel" aria-labelledby="t5" hidden>
+    <div class="station-head">
+      <span class="eyebrow">Pos 5</span><h2>Latihan Skala</h2>
+      <p>Sepuluh soal acak: menghitung jarak sebenarnya, jarak di peta, skala, dan menggolongkan skala peta.</p>
+    </div>
+    <div class="practice">
+      <div class="qcard" id="q5"></div>
+      <div style="display:grid;gap:14px">
+        <div class="score">
+          <div><b id="s5">0</b><span>Benar</span></div>
+          <div><b id="n5">1/10</b><span>Soal</span></div>
+        </div>
+        <div class="ref">
+          <b>Rumus</b>
+          <div>Jarak sebenarnya = jarak peta × penyebut skala</div>
+          <div>Jarak peta = jarak sebenarnya ÷ penyebut skala</div>
+          <div>Penyebut skala = jarak sebenarnya ÷ jarak peta</div>
+          <div class="muted small">1 km = 1.000 m = 100.000 cm. Samakan satuan sebelum menghitung.</div>
+        </div>
+        <div class="ref">
+          <b>Penggolongan skala</b>
+          <table>
+            <tr><td>Kadaster</td><td>1 : 100 – 1 : 5.000</td></tr>
+            <tr><td>Skala besar</td><td>1 : 5.000 – 1 : 250.000</td></tr>
+            <tr><td>Skala sedang</td><td>1 : 250.001 – 1 : 500.000</td></tr>
+            <tr><td>Skala kecil</td><td>1 : 500.001 – 1 : 1.000.000</td></tr>
+            <tr><td>Skala geografis</td><td>&lt; 1 : 1.000.000</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="wrap">Peta Bali pada media ini disederhanakan untuk pembelajaran. Bentuk pantai, letak kota, dan penggunaan lahan tidak sedetail peta resmi. Media pembelajaran oleh Ni Nengah Arsidi Devi Anggandini.</footer>
+
+<script>
+(function(){
+const CM = 30;            // 1 cm peta = 30 satuan SVG
+const SCALE = 750000;
+const NS = 'http://www.w3.org/2000/svg';
+const fmt = (x, d=2) => new Intl.NumberFormat('id-ID',{maximumFractionDigits:d}).format(x);
+
+const COMPS = [
+  {id:'judul', name:'Judul', desc:'Menunjukkan isi dan tema peta serta wilayah yang digambarkan. Biasanya ditulis di bagian atas dengan huruf kapital.', why:'Pembaca langsung tahu peta ini tentang apa dan wilayah mana.', here:'“Peta Provinsi Bali” menunjukkan bahwa wilayah yang digambarkan adalah Provinsi Bali, lengkap dengan kota, jalan, dan penggunaan lahannya.', lost:'Pembaca tidak tahu peta ini tentang apa dan wilayah mana.'},
+  {id:'skala', name:'Skala', desc:'Perbandingan antara jarak di peta dengan jarak sebenarnya di lapangan.', why:'Tanpa skala, jarak dan luas sebenarnya tidak dapat dihitung.', here:'Skala 1 : 750.000 berarti 1 cm di peta = 750.000 cm = 7,5 km. Peta ini memakai skala angka dan skala grafis.', lost:'Jarak dan luas sebenarnya tidak dapat dihitung.'},
+  {id:'orientasi', name:'Orientasi', desc:'Petunjuk arah berupa tanda panah yang menunjuk ke arah utara.', why:'Membantu menentukan arah dan posisi suatu tempat terhadap tempat lain.', here:'Panah menunjuk ke atas. Singaraja berada di pesisir utara, sedangkan Denpasar di bagian selatan Pulau Bali.', lost:'Arah utara tidak diketahui, sehingga pembaca bisa salah menentukan arah.'},
+  {id:'simbol', name:'Simbol', desc:'Tanda atau gambar yang mewakili objek di permukaan bumi. Ada simbol titik, garis, dan area.', why:'Objek yang banyak dan beragam dapat digambar dengan ringkas dan mudah dikenali.', here:'Kotak: ibu kota provinsi. Lingkaran: kota kabupaten dan pelabuhan. Garis: jalan dan sungai. Area: hutan, sawah, dan danau. Segitiga: Gunung Agung dan Gunung Batur.', lost:'Objek penting seperti kota, jalan, sungai, dan hutan tidak tergambar.'},
+  {id:'legenda', name:'Legenda', desc:'Keterangan dari semua simbol yang digunakan pada peta.', why:'Tanpa legenda, arti setiap simbol bisa ditafsirkan berbeda-beda.', here:'Sembilan simbol dijelaskan, dari ibu kota provinsi sampai laut dan danau.', lost:'Arti setiap simbol tidak dapat dipahami.'},
+  {id:'astro', name:'Garis Astronomis', desc:'Garis lintang dan garis bujur yang digunakan untuk menentukan letak astronomis suatu tempat.', why:'Letak wilayah dapat dinyatakan dengan tepat dalam derajat dan menit.', here:'Pulau Bali terletak antara 8°03′40″–8°50′48″ LS dan 114°25′53″–115°42′40″ BT.', lost:'Letak astronomis (lintang dan bujur) wilayah tidak dapat ditentukan.'},
+  {id:'inset', name:'Inset', desc:'Peta kecil yang disisipkan untuk memperjelas letak wilayah terhadap daerah yang lebih luas.', why:'Pembaca tahu posisi wilayah yang dipetakan di antara wilayah sekitarnya.', here:'Kotak merah pada inset menunjukkan letak Pulau Bali di antara Pulau Jawa dan Pulau Lombok.', lost:'Letak wilayah terhadap daerah sekitarnya yang lebih luas tidak terlihat.'},
+  {id:'sumber', name:'Sumber & Tahun', desc:'Keterangan asal data dan waktu pembuatan peta.', why:'Pembaca dapat menilai apakah data dapat dipercaya dan masih mutakhir.', here:'Peta ini disederhanakan untuk pembelajaran dan dibuat September 2026. Bentuk pantai dan penggunaan lahan tidak sedetail peta resmi.', lost:'Pembaca tidak dapat menilai asal data dan kemutakhiran peta.'},
+];
+const byId = Object.fromEntries(COMPS.map(c=>[c.id,c]));
+
+// Proyeksi sederhana: 1 cm peta = 30 satuan SVG, skala 1 : 750.000 (1 cm = 7,5 km, 1 km = 4 satuan)
+const PX=(lon,lat)=>[+(80+(lon-114.40)*440.4).toFixed(1), +(100+(lat-7.90)*442.4).toFixed(1)];
+function smooth(pts, closed){
+  const P=pts.map(([lo,la])=>PX(lo,la)), n=P.length, g=i=>closed?P[(i+n)%n]:P[Math.max(0,Math.min(n-1,i))];
+  let d=`M${P[0][0]} ${P[0][1]}`; const last=closed?n:n-1;
+  for(let i=0;i<last;i++){const p0=g(i-1),p1=g(i),p2=g(i+1),p3=g(i+2);
+    const c1=[p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6], c2=[p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6];
+    d+=` C ${c1[0].toFixed(1)} ${c1[1].toFixed(1)}, ${c2[0].toFixed(1)} ${c2[1].toFixed(1)}, ${p2[0]} ${p2[1]}`;}
+  return d+(closed?' Z':'');
+}
+const COAST=[[114.432,8.155],[114.47,8.13],[114.53,8.12],[114.6,8.125],[114.65,8.135],[114.72,8.145],[114.8,8.175],[114.88,8.185],[114.95,8.18],[115.02,8.16],[115.09,8.11],[115.18,8.07],[115.26,8.09],[115.34,8.12],[115.44,8.18],[115.53,8.25],[115.59,8.285],[115.65,8.33],[115.71,8.4],[115.69,8.45],[115.63,8.47],[115.57,8.51],[115.51,8.535],[115.45,8.565],[115.38,8.59],[115.32,8.61],[115.265,8.67],[115.24,8.72],[115.225,8.76],[115.235,8.8],[115.215,8.84],[115.15,8.85],[115.09,8.835],[115.1,8.8],[115.15,8.78],[115.165,8.745],[115.16,8.715],[115.145,8.68],[115.12,8.65],[115.085,8.62],[115.03,8.58],[114.97,8.505],[114.9,8.465],[114.83,8.43],[114.73,8.4],[114.64,8.395],[114.58,8.385],[114.53,8.33],[114.49,8.27],[114.45,8.21]];
+const ISLAND = smooth(COAST,true);
+const PENIDA = smooth([[115.47,8.68],[115.55,8.67],[115.61,8.72],[115.6,8.78],[115.52,8.81],[115.45,8.77],[115.44,8.72]],true);
+const JAVA = smooth([[114.2,7.85],[114.39,7.85],[114.42,8.0],[114.4,8.12],[114.37,8.22],[114.35,8.33],[114.34,8.42],[114.4,8.47],[114.5,8.53],[114.58,8.62],[114.6,8.7],[114.55,8.78],[114.45,8.76],[114.35,8.72],[114.2,8.72]],true);
+const FORESTS = [
+  [[114.46,8.16],[114.55,8.14],[114.65,8.15],[114.75,8.19],[114.8,8.26],[114.72,8.32],[114.6,8.3],[114.5,8.26]],
+  [[114.98,8.26],[115.08,8.22],[115.2,8.22],[115.25,8.28],[115.2,8.36],[115.08,8.37],[115.0,8.33]],
+  [[115.33,8.2],[115.45,8.2],[115.56,8.28],[115.56,8.38],[115.46,8.4],[115.36,8.33]],
+].map(a=>smooth(a,true));
+const SAWAHS = [[[114.95,8.46],[115.05,8.41],[115.18,8.4],[115.3,8.42],[115.42,8.47],[115.46,8.52],[115.38,8.56],[115.28,8.58],[115.15,8.59],[115.03,8.55]]].map(a=>smooth(a,true));
+const LAKES = [[115.405,8.258,12,5,-60],[115.17,8.28,4,5,0],[115.125,8.245,7,3,-10],[115.09,8.26,4,3,0]].map(([lo,la,rx,ry,r])=>{const [x,y]=PX(lo,la);return {x,y,rx,ry,r};});
+const ROADS = [
+  [[114.44,8.17],[114.5,8.28],[114.62,8.36],[114.84,8.42],[115.0,8.5],[115.12,8.54],[115.22,8.65]],
+  [[115.22,8.65],[115.33,8.58],[115.51,8.53],[115.61,8.45]],
+  [[115.22,8.65],[115.17,8.5],[115.17,8.3],[115.12,8.2],[115.09,8.11]],
+  [[115.09,8.11],[114.93,8.19],[114.72,8.16],[114.44,8.17]],
+  [[115.09,8.11],[115.33,8.13],[115.55,8.26],[115.61,8.45]],
+  [[115.22,8.65],[115.3,8.55],[115.35,8.45]],
+].map(a=>smooth(a,false));
+const RIVERS = [
+  [[115.21,8.29],[115.24,8.4],[115.25,8.52],[115.265,8.6],[115.272,8.668]],
+  [[115.46,8.37],[115.43,8.45],[115.41,8.52],[115.405,8.583]],
+  [[115.01,8.3],[114.98,8.23],[114.96,8.182]],
+].map(a=>smooth(a,false));
+const TOWNS = [
+  {id:'denpasar', name:'Denpasar', lon:115.22, lat:8.65, type:'kota', lx:12, ly:18, a:'start'},
+  {id:'singaraja', name:'Singaraja', lon:115.09, lat:8.11, type:'kab', lx:0, ly:-14, a:'middle'},
+  {id:'negara', name:'Negara', lon:114.62, lat:8.36, type:'kab', lx:0, ly:-13, a:'middle'},
+  {id:'tabanan', name:'Tabanan', lon:115.12, lat:8.54, type:'kab', lx:-12, ly:5, a:'end'},
+  {id:'bangli', name:'Bangli', lon:115.35, lat:8.45, type:'kab', lx:12, ly:5, a:'start'},
+  {id:'amlapura', name:'Amlapura', lon:115.61, lat:8.45, type:'kab', lx:0, ly:24, a:'middle'},
+  {id:'gilimanuk', name:'Gilimanuk', lon:114.44, lat:8.17, type:'pelabuhan', lx:10, ly:-10, a:'start'},
+  {id:'padangbai', name:'Padangbai', lon:115.51, lat:8.53, type:'pelabuhan', lx:0, ly:24, a:'middle'},
+  {id:'agung', name:'G. Agung (3.142 m)', lon:115.51, lat:8.34, type:'gunung', lx:0, ly:27, a:'middle'},
+  {id:'batur', name:'G. Batur (1.717 m)', lon:115.375, lat:8.242, type:'gunung', lx:-4, ly:-16, a:'middle'},
+].map(t=>{const [x,y]=PX(t.lon,t.lat); return {...t,x,y};});
+const GX = [[114.5,"114°30′ BT"],[114.75,"114°45′ BT"],[115.0,"115°00′ BT"],[115.25,"115°15′ BT"],[115.5,"115°30′ BT"],[115.75,"115°45′ BT"]].map(([lo,l])=>[PX(lo,8)[0],l]);
+const GY = [[8.0,"8°00′ LS"],[8.25,"8°15′ LS"],[8.5,"8°30′ LS"],[8.75,"8°45′ LS"],[9.0,"9°00′ LS"]].map(([la,l])=>[PX(115,la)[1],l]);
+const FRAME = {x:70,y:100,w:630,h:560};
+const PANEL = {
+  judul:{x:70,y:24,w:910,h:56},
+  orientasi:{x:725,y:100,w:255,h:90},
+  skala:{x:725,y:198,w:255,h:80},
+  legenda:{x:725,y:286,w:255,h:236},
+  inset:{x:725,y:530,w:255,h:88},
+  sumber:{x:725,y:626,w:255,h:34},
+};
+
+function townSym(t){
+  if(t.type==='kota') return `<rect x="${t.x-8}" y="${t.y-8}" width="16" height="16" fill="#09211D" stroke="#fff" stroke-width="2"/>`;
+  if(t.type==='gunung') return `<polygon points="${t.x},${t.y-13} ${t.x+12},${t.y+9} ${t.x-12},${t.y+9}" fill="#7A4B2A" stroke="#fff" stroke-width="2"/>`;
+  if(t.type==='pelabuhan') return `<circle cx="${t.x}" cy="${t.y}" r="6.5" fill="#2E6E86" stroke="#fff" stroke-width="2.5"/>`;
+  return `<circle cx="${t.x}" cy="${t.y}" r="7" fill="#fff" stroke="#09211D" stroke-width="3"/>`;
+}
+
+function buildMap(p, opt={}){
+  const f = FRAME;
+  let s = `<svg xmlns="${NS}" viewBox="0 0 1000 720" role="img" aria-label="Peta Provinsi Bali">
+  <defs>
+    <pattern id="${p}-forest" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#9ACB8E"/><circle cx="5" cy="5" r="3.2" fill="#4E8F4A"/><circle cx="13" cy="13" r="3.2" fill="#4E8F4A"/></pattern>
+    <pattern id="${p}-sawah" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#E3EDB0"/><path d="M0 10 L10 0" stroke="#9DB84A" stroke-width="2"/></pattern>
+    <clipPath id="${p}-clip"><rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}"/></clipPath>
+  </defs>
+  <rect x="0" y="0" width="1000" height="720" fill="#FFFDF7"/>
+  <rect x="8" y="8" width="984" height="704" fill="none" stroke="#09211D" stroke-width="3"/>
+  <rect x="14" y="14" width="972" height="692" fill="none" stroke="#09211D" stroke-width="1"/>`;
+  // main map
+  s += `<g clip-path="url(#${p}-clip)"><rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" fill="#CFE8EA"/>
+    <path d="${JAVA}" fill="#ECE6D3" stroke="#6E8B80" stroke-width="1.5"/>
+    <path d="${ISLAND}" fill="#F3EBD2" stroke="#6E8B80" stroke-width="2"/>
+    <path d="${PENIDA}" fill="#F3EBD2" stroke="#6E8B80" stroke-width="2"/>
+    <g class="g-simbol">${FORESTS.map(d=>`<path d="${d}" fill="url(#${p}-forest)"/>`).join('')}${SAWAHS.map(d=>`<path d="${d}" fill="url(#${p}-sawah)"/>`).join('')}
+      ${LAKES.map(l=>`<ellipse cx="${l.x}" cy="${l.y}" rx="${l.rx}" ry="${l.ry}" transform="rotate(${l.r} ${l.x} ${l.y})" fill="#8FC7DD" stroke="#3C8DBF" stroke-width="1.5"/>`).join('')}
+      ${RIVERS.map(d=>`<path d="${d}" fill="none" stroke="#3C8DBF" stroke-width="3" stroke-linecap="round"/>`).join('')}
+      ${ROADS.map(d=>`<path d="${d}" fill="none" stroke="#B5452F" stroke-width="3.5" stroke-linecap="round"/>`).join('')}
+      ${TOWNS.map(townSym).join('')}
+    </g>
+    <g class="g-astro">${GX.map(([x])=>`<line x1="${x}" y1="${f.y}" x2="${x}" y2="${f.y+f.h}" stroke="#2F6B6F" stroke-width="1" stroke-dasharray="6 5" opacity=".7"/>`).join('')}
+      ${GY.map(([y])=>`<line x1="${f.x}" y1="${y}" x2="${f.x+f.w}" y2="${y}" stroke="#2F6B6F" stroke-width="1" stroke-dasharray="6 5" opacity=".7"/>`).join('')}</g>
+    ${TOWNS.map(t=>`<text x="${t.x+t.lx}" y="${t.y+t.ly}" text-anchor="${t.a}" font-family="Barlow,sans-serif" font-size="${t.type==='kota'?17:15}" font-weight="${t.type==='kota'?700:600}" fill="#09211D" paint-order="stroke" stroke="#FFFDF7" stroke-width="4">${t.name}</text>`).join('')}
+    <g font-family="Barlow,sans-serif" font-style="italic" fill="#2E6E86">
+      <text x="300" y="${f.y+32}" font-size="18" letter-spacing="4">LAUT BALI</text>
+      <text x="330" y="${f.y+f.h-40}" font-size="18" letter-spacing="4">SAMUDRA HINDIA</text>
+      <text transform="translate(104 335) rotate(-80)" text-anchor="middle" font-size="13" letter-spacing="2">SELAT BALI</text>
+      <text transform="translate(690 470) rotate(-90)" text-anchor="middle" font-size="13" letter-spacing="2">SELAT LOMBOK</text>
+      <text x="540" y="520" text-anchor="middle" font-size="13" font-style="normal" font-weight="600" fill="#09211D">Nusa Penida</text>
+      <text x="76" y="470" font-size="11" font-style="normal" font-weight="600" fill="#6E8B80">JAWA TIMUR</text>
+    </g>
+  </g>
+  <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" fill="none" stroke="#09211D" stroke-width="2"/>
+  <g class="g-astro" font-family="Barlow,sans-serif" font-size="13" fill="#2F6B6F" font-weight="600">
+    ${GX.map(([x,l])=>`<line x1="${x}" y1="${f.y-6}" x2="${x}" y2="${f.y}" stroke="#09211D"/><text x="${x}" y="${f.y-10}" text-anchor="middle">${l}</text>`).join('')}
+    ${GY.map(([y,l])=>`<line x1="${f.x-6}" y1="${y}" x2="${f.x}" y2="${y}" stroke="#09211D"/><text transform="translate(${f.x-12} ${y}) rotate(-90)" text-anchor="middle">${l}</text>`).join('')}
+  </g>`;
+  // title
+  s += `<g class="g-judul"><text x="525" y="62" text-anchor="middle" font-family="'League Spartan',sans-serif" font-weight="800" font-size="30" fill="#09211D" letter-spacing="1">PETA PROVINSI BALI</text></g>`;
+  // orientation
+  const P = PANEL;
+  s += `<g class="g-orientasi"><rect x="${P.orientasi.x}" y="${P.orientasi.y}" width="${P.orientasi.w}" height="${P.orientasi.h}" fill="none" stroke="#09211D"/>
+    <text x="852" y="122" text-anchor="middle" font-family="'League Spartan',sans-serif" font-weight="800" font-size="18" fill="#09211D">U</text>
+    <polygon points="852,128 868,182 852,170 836,182" fill="#FFFDF7" stroke="#09211D" stroke-width="2"/><polygon points="852,128 852,170 836,182" fill="#09211D"/></g>`;
+  // scale
+  const bx=792, by=240;
+  s += `<g class="g-skala"><rect x="${P.skala.x}" y="${P.skala.y}" width="${P.skala.w}" height="${P.skala.h}" fill="none" stroke="#09211D"/>
+    <text x="852" y="224" text-anchor="middle" font-family="Barlow,sans-serif" font-weight="700" font-size="17" fill="#09211D">SKALA 1 : 750.000</text>
+    ${[0,1,2,3].map(i=>`<rect x="${bx+i*CM}" y="${by}" width="${CM}" height="9" fill="${i%2?'#FFFDF7':'#09211D'}" stroke="#09211D" stroke-width="1.5"/>`).join('')}
+    ${['0','7,5','15','22,5','30 km'].map((l,i)=>`<text x="${bx+i*CM+(i===4?8:0)}" y="${by+27}" text-anchor="middle" font-family="Barlow,sans-serif" font-size="13" fill="#09211D">${l}</text>`).join('')}</g>`;
+  // legend
+  const L = [
+    ['kota','Ibu kota provinsi'],['desa','Kota kabupaten'],['pelabuhan','Pelabuhan'],['jalan','Jalan utama'],['sungai','Sungai'],
+    ['gunung','Puncak gunung'],['hutan','Hutan'],['sawah','Sawah'],['laut','Laut / danau'],
+  ];
+  s += `<g class="g-legenda"><rect x="${P.legenda.x}" y="${P.legenda.y}" width="${P.legenda.w}" height="${P.legenda.h}" fill="none" stroke="#09211D"/>
+    <text x="852" y="${P.legenda.y+24}" text-anchor="middle" font-family="Barlow,sans-serif" font-weight="700" font-size="17" fill="#09211D">LEGENDA</text>`;
+  L.forEach(([k,label],i)=>{
+    const y = P.legenda.y+48+i*21.5, x=748;
+    let sym='';
+    if(k==='kota') sym=`<rect x="${x+6}" y="${y-7}" width="14" height="14" fill="#09211D"/>`;
+    if(k==='desa') sym=`<circle cx="${x+13}" cy="${y}" r="6" fill="#fff" stroke="#09211D" stroke-width="3"/>`;
+    if(k==='pelabuhan') sym=`<circle cx="${x+13}" cy="${y}" r="6" fill="#2E6E86"/>`;
+    if(k==='jalan') sym=`<line x1="${x}" y1="${y}" x2="${x+26}" y2="${y}" stroke="#B5452F" stroke-width="3.5"/>`;
+    if(k==='sungai') sym=`<path d="M${x} ${y+3} q7 -8 13 -2 t13 -2" fill="none" stroke="#3C8DBF" stroke-width="3"/>`;
+    if(k==='gunung') sym=`<polygon points="${x+13},${y-9} ${x+23},${y+7} ${x+3},${y+7}" fill="#7A4B2A"/>`;
+    if(k==='hutan') sym=`<rect x="${x}" y="${y-7}" width="26" height="14" fill="url(#${p}-forest)" stroke="#4E8F4A"/>`;
+    if(k==='sawah') sym=`<rect x="${x}" y="${y-7}" width="26" height="14" fill="url(#${p}-sawah)" stroke="#9DB84A"/>`;
+    if(k==='laut') sym=`<rect x="${x}" y="${y-7}" width="26" height="14" fill="#CFE8EA" stroke="#6E8B80"/>`;
+    s += sym + `<text x="${x+40}" y="${y+5}" font-family="Barlow,sans-serif" font-size="15" fill="#09211D">${label}</text>`;
+  });
+  s += `</g>`;
+  // inset
+  const I=P.inset;
+  s += `<g class="g-inset"><rect x="${I.x}" y="${I.y}" width="${I.w}" height="${I.h}" fill="#CFE8EA" stroke="#09211D"/>
+    <path d="M${I.x} ${I.y+30} C ${I.x+50} ${I.y+22}, ${I.x+110} ${I.y+30}, ${I.x+152} ${I.y+38} L ${I.x+154} ${I.y+50} C ${I.x+110} ${I.y+56}, ${I.x+50} ${I.y+54}, ${I.x} ${I.y+60} Z" fill="#E6DDBF" stroke="#6E8B80"/>
+    <ellipse cx="${I.x+171}" cy="${I.y+42}" rx="11" ry="6" fill="#F3EBD2" stroke="#6E8B80"/>
+    <ellipse cx="${I.x+197}" cy="${I.y+44}" rx="8" ry="7" fill="#E6DDBF" stroke="#6E8B80"/>
+    <ellipse cx="${I.x+230}" cy="${I.y+46}" rx="22" ry="7" fill="#E6DDBF" stroke="#6E8B80"/>
+    <text x="${I.x+60}" y="${I.y+47}" font-family="Barlow,sans-serif" font-size="11" fill="#6E8B80">Jawa</text>
+    <text x="${I.x+197}" y="${I.y+64}" text-anchor="middle" font-family="Barlow,sans-serif" font-size="10" fill="#6E8B80">Lombok</text>
+    <rect x="${I.x+155}" y="${I.y+30}" width="32" height="24" fill="none" stroke="#D0342C" stroke-width="3"/>
+    <text x="${I.x+8}" y="${I.y+I.h-8}" font-family="Barlow,sans-serif" font-size="12" font-weight="600" fill="#09211D">Letak Pulau Bali</text></g>`;
+  // source
+  s += `<g class="g-sumber"><text x="${P.sumber.x+4}" y="${P.sumber.y+14}" font-family="Barlow,sans-serif" font-size="12.5" fill="#09211D">Sumber: penyederhanaan peta Bali</text>
+    <text x="${P.sumber.x+4}" y="${P.sumber.y+30}" font-family="Barlow,sans-serif" font-size="12.5" fill="#09211D">Dibuat: September 2026</text></g>`;
+  s += `<g class="overlay"></g>`;
+  if(opt.hits){
+    s += `<g class="hits">
+      ${GX.map(([x])=>`<line class="hitline" data-comp="astro" x1="${x}" y1="${f.y}" x2="${x}" y2="${f.y+f.h}"/>`).join('')}
+      ${GY.map(([y])=>`<line class="hitline" data-comp="astro" x1="${f.x}" y1="${y}" x2="${f.x+f.w}" y2="${y}"/>`).join('')}
+      <rect class="hit" data-comp="astro" x="${f.x}" y="${f.y-24}" width="${f.w}" height="24"/>
+      <rect class="hit" data-comp="astro" x="${f.x-30}" y="${f.y}" width="30" height="${f.h}"/>
+      ${FORESTS.concat(SAWAHS).map(d=>`<path class="hit" data-comp="simbol" d="${d}"/>`).join('')}
+      ${LAKES.map(l=>`<ellipse class="hit" data-comp="simbol" cx="${l.x}" cy="${l.y}" rx="${l.rx+6}" ry="${l.ry+6}"/>`).join('')}
+      ${RIVERS.concat(ROADS).map(d=>`<path class="hitline" data-comp="simbol" d="${d}" style="stroke-width:14"/>`).join('')}
+      ${TOWNS.map(t=>`<circle class="hit" data-comp="simbol" cx="${t.x}" cy="${t.y}" r="20"/>`).join('')}
+      ${Object.entries(PANEL).map(([k,r])=>`<rect class="hit" data-comp="${k}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"/>`).join('')}
+    </g>`;
+  }
+  if(opt.towns){
+    s += `<g class="measure-layer"></g><g class="hits">${TOWNS.map(t=>`<circle class="town-hit" data-town="${t.id}" cx="${t.x}" cy="${t.y}" r="22"><title>${t.name}</title></circle>`).join('')}</g>`;
+  }
+  return s + `</svg>`;
+}
+
+function el(tag, attrs){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
+
+function highlight(svg, comp, state='show'){
+  const ov = svg.querySelector('.overlay'); ov.innerHTML='';
+  if(!comp) return;
+  const cls = 'hl' + (state==='ok'?' okc':'') + (state==='show'?' pulse':'');
+  if(PANEL[comp]){
+    const r=PANEL[comp]; ov.appendChild(el('rect',{x:r.x-5,y:r.y-5,width:r.w+10,height:r.h+10,rx:8,class:cls}));
+  } else if(comp==='simbol'){
+    TOWNS.forEach(t=>ov.appendChild(el('circle',{cx:t.x,cy:t.y,r:16,class:cls})));
+    FORESTS.concat(SAWAHS).forEach(d=>ov.appendChild(el('path',{d,class:cls})));
+    LAKES.forEach(l=>ov.appendChild(el('ellipse',{cx:l.x,cy:l.y,rx:l.rx+4,ry:l.ry+4,class:cls})));
+    RIVERS.concat(ROADS).forEach(d=>ov.appendChild(el('path',{d,class:cls+' line',style:'stroke-width:4;stroke-opacity:.8'})));
+  } else if(comp==='astro'){
+    const f=FRAME;
+    GX.forEach(([x])=>ov.appendChild(el('line',{x1:x,y1:f.y,x2:x,y2:f.y+f.h,class:cls+' line'})));
+    GY.forEach(([y])=>ov.appendChild(el('line',{x1:f.x,y1:y,x2:f.x+f.w,y2:y,class:cls+' line'})));
+    ov.appendChild(el('rect',{x:f.x,y:f.y-26,width:f.w,height:24,rx:5,class:cls}));
+    ov.appendChild(el('rect',{x:f.x-30,y:f.y,width:26,height:f.h,rx:5,class:cls}));
+  }
+}
+function svgPoint(svg, evt){
+  const pt=svg.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+const pick = a => a[Math.floor(Math.random()*a.length)];
+
+/* ---------- tabs ---------- */
+const tabs=[...document.querySelectorAll('.tab')];
+function openTab(t){
+  tabs.forEach(b=>{const on=b===t; b.setAttribute('aria-selected',on); document.getElementById(b.getAttribute('aria-controls')).hidden=!on;});
+  try{localStorage.setItem('dp-tab',t.id);}catch(e){}
+}
+tabs.forEach(b=>b.addEventListener('click',()=>openTab(b)));
+try{const saved=localStorage.getItem('dp-tab'); if(saved&&document.getElementById(saved)) openTab(document.getElementById(saved));}catch(e){}
+
+/* ---------- POS 1 ---------- */
+const m1=document.getElementById('map1'); m1.innerHTML=buildMap('m1',{hits:true});
+const svg1=m1.querySelector('svg'); const chips1=document.getElementById('chips1'); const info1=document.getElementById('info1');
+COMPS.forEach(c=>{const b=document.createElement('button'); b.className='chip'; b.textContent=c.name; b.dataset.comp=c.id; b.setAttribute('aria-pressed','false'); b.onclick=()=>show1(c.id); chips1.appendChild(b);});
+function show1(id){
+  const c=byId[id]; highlight(svg1,id,'show');
+  chips1.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.comp===id));
+  info1.innerHTML=`<span class="tag">Komponen peta</span><h3 style="margin:8px 0 12px">${c.name}</h3>
+    <dl><div><dt>Fungsi</dt><dd>${c.desc}</dd></div><div><dt>Mengapa penting?</dt><dd>${c.why}</dd></div><div><dt>Di peta ini</dt><dd>${c.here}</dd></div></dl>`;
+}
+svg1.addEventListener('click',e=>{const t=e.target.closest('[data-comp]'); if(t) show1(t.dataset.comp);});
+show1('judul');
+
+/* ---------- POS 2 ---------- */
+const m2=document.getElementById('map2'); m2.innerHTML=buildMap('m2',{hits:true});
+const svg2=m2.querySelector('svg');
+const g2={order:[],i:0,score:0,res:[],locked:false};
+const dots2=document.getElementById('dots2'), prompt2=document.getElementById('prompt2'), fb2=document.getElementById('fb2'), next2=document.getElementById('next2');
+function start2(){ g2.order=shuffle(COMPS.map(c=>c.id)); g2.i=0; g2.score=0; g2.res=[]; round2(); }
+function drawDots2(){ dots2.innerHTML=g2.order.map((_,k)=>`<i class="${g2.res[k]===true?'ok':g2.res[k]===false?'bad':''}${k===g2.i&&g2.i<g2.order.length?' now':''}"></i>`).join(''); }
+function round2(){
+  highlight(svg2,null); svg2.querySelectorAll('.tapx').forEach(n=>n.remove());
+  g2.locked=false; next2.hidden=true; fb2.innerHTML='';
+  if(g2.i>=g2.order.length){
+    drawDots2();
+    const s=g2.score, msg = s===8?'Sempurna! Kamu detektif peta sejati.':s>=6?'Bagus! Ulangi sekali lagi untuk mendapat nilai sempurna.':'Coba lagi. Buka Pos 1 untuk mengingat letak komponen.';
+    prompt2.innerHTML=`<small>Hasil</small>${s} dari 8 benar`;
+    fb2.innerHTML=`<div class="fb note">${msg}</div>`; return;
+  }
+  drawDots2();
+  prompt2.innerHTML=`<small>Ketuk komponen ini · ${g2.i+1} dari 8</small>${byId[g2.order[g2.i]].name.toUpperCase()}`;
+}
+svg2.addEventListener('click',e=>{
+  if(g2.locked||g2.i>=g2.order.length) return;
+  const target=g2.order[g2.i]; const t=e.target.closest('[data-comp]'); const got=t?t.dataset.comp:null;
+  g2.locked=true;
+  if(got===target){
+    g2.score++; g2.res[g2.i]=true; highlight(svg2,target,'ok');
+    fb2.innerHTML=`<div class="fb ok"><b class="okc">Tepat!</b> ${byId[target].desc}</div>`;
+  } else {
+    g2.res[g2.i]=false; highlight(svg2,target,'show');
+    const p=svgPoint(svg2,e); const x=el('g',{class:'tapx'});
+    x.appendChild(el('circle',{cx:p.x,cy:p.y,r:16,fill:'#B63A26','fill-opacity':'.25',stroke:'#B63A26','stroke-width':3}));
+    svg2.appendChild(x);
+    fb2.innerHTML=`<div class="fb bad"><b class="badc">Belum tepat.</b> ${got?`Yang kamu ketuk adalah <b>${byId[got].name}</b>. `:''}${byId[target].name} ditandai kuning pada peta.</div>`;
+  }
+  drawDots2(); next2.hidden=false; next2.textContent = g2.i===g2.order.length-1?'Lihat hasil':'Lanjut'; next2.focus({preventScroll:true});
+});
+next2.onclick=()=>{g2.i++; round2();};
+document.getElementById('restart2').onclick=start2;
+start2();
+
+/* ---------- POS 3 ---------- */
+const m3=document.getElementById('map3'); m3.innerHTML=buildMap('m3');
+const svg3=m3.querySelector('svg'); const checks3=document.getElementById('checks3'); const fb3=document.getElementById('fb3');
+let missing3=[];
+checks3.innerHTML=COMPS.map(c=>`<label class="check" id="lab3-${c.id}"><input type="checkbox" id="c3-${c.id}" value="${c.id}">${c.name}</label>`).join('');
+function new3(){
+  let m; do{ m=shuffle(COMPS.map(c=>c.id)).slice(0,3); }while(m.includes('simbol')&&m.includes('legenda')&&Math.random()<.7);
+  missing3=m;
+  COMPS.forEach(c=>{ svg3.querySelectorAll('.g-'+c.id).forEach(g=>g.classList.toggle('gone',missing3.includes(c.id))); const cb=document.getElementById('c3-'+c.id); cb.checked=false; cb.disabled=false; document.getElementById('lab3-'+c.id).className='check'; });
+  fb3.innerHTML='';
+}
+document.getElementById('check3').onclick=()=>{
+  let right=0, wrong=0;
+  COMPS.forEach(c=>{
+    const cb=document.getElementById('c3-'+c.id), lab=document.getElementById('lab3-'+c.id), isM=missing3.includes(c.id);
+    lab.className='check'+(isM&&cb.checked?' hit':isM?' miss':cb.checked?' wrong':'');
+    if(isM&&cb.checked) right++; if(!isM&&cb.checked) wrong++; cb.disabled=true;
+  });
+  const head = right===3&&wrong===0 ? `<b class="okc">Hebat! Ketiga komponen yang hilang kamu temukan.</b>` : `<b class="badc">${right} dari 3 benar${wrong?`, ${wrong} pilihan keliru`:''}.</b> Kotak kuning adalah komponen hilang yang terlewat.`;
+  fb3.innerHTML=`<div class="fb ${right===3&&wrong===0?'ok':'bad'}">${head}</div>
+    <div class="fb note"><b>Akibat jika komponen ini hilang:</b><ul class="result-list">${missing3.map(id=>`<li><b>${byId[id].name}</b>: ${byId[id].lost}</li>`).join('')}</ul></div>`;
+};
+document.getElementById('new3').onclick=new3;
+new3();
+
+/* ---------- POS 4 ---------- */
+const m4=document.getElementById('map4'); m4.innerHTML=buildMap('m4',{towns:true});
+const svg4=m4.querySelector('svg'); const layer4=svg4.querySelector('.measure-layer');
+const in4=document.getElementById('in4'), check4=document.getElementById('check4'), fb4=document.getElementById('fb4');
+let sel4=[];
+const townBy=Object.fromEntries(TOWNS.map(t=>[t.id,t]));
+const jpOf=(a,b)=>Math.round(Math.hypot(a.x-b.x,a.y-b.y)/CM*10)/10;
+function draw4(){
+  layer4.innerHTML='';
+  sel4.forEach((id,k)=>{const t=townBy[id]; layer4.appendChild(el('circle',{cx:t.x,cy:t.y,r:18,class:'sel-ring'}));
+    const lb=el('text',{x:t.x,y:t.y-24,'text-anchor':'middle','font-family':'League Spartan,sans-serif','font-weight':800,'font-size':20,fill:'#E39E00',stroke:'#FFFDF7','stroke-width':4,'paint-order':'stroke'}); lb.textContent=k?'B':'A'; layer4.appendChild(lb);});
+  document.getElementById('a4').textContent = sel4[0]?townBy[sel4[0]].name:'Ketuk tempat pertama';
+  document.getElementById('b4').textContent = sel4[1]?townBy[sel4[1]].name:(sel4[0]?'Ketuk tempat kedua':'–');
+  fb4.innerHTML=''; in4.value='';
+  if(sel4.length===2){
+    const a=townBy[sel4[0]], b=townBy[sel4[1]];
+    layer4.insertBefore(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'#09211D','stroke-width':3,'stroke-dasharray':'10 6'}),layer4.firstChild);
+    // ruler ticks every 1 cm
+    const L=Math.hypot(b.x-a.x,b.y-a.y), ux=(b.x-a.x)/L, uy=(b.y-a.y)/L;
+    for(let d=CM; d<L; d+=CM){ const cx=a.x+ux*d, cy=a.y+uy*d; layer4.insertBefore(el('line',{x1:cx-uy*7,y1:cy+ux*7,x2:cx+uy*7,y2:cy-ux*7,stroke:'#09211D','stroke-width':2}),layer4.firstChild); }
+    document.getElementById('jp4').textContent=fmt(jpOf(a,b),1)+' cm';
+    in4.disabled=false; check4.disabled=false;
+  } else { document.getElementById('jp4').textContent='– cm'; in4.disabled=true; check4.disabled=true; }
+}
+svg4.addEventListener('click',e=>{const t=e.target.closest('[data-town]'); if(!t) return; const id=t.dataset.town;
+  if(sel4.length>=2) sel4=[]; if(sel4[0]===id) return; sel4.push(id); draw4(); if(sel4.length===2) in4.focus({preventScroll:true});});
+document.getElementById('rand4').onclick=()=>{ sel4=shuffle(TOWNS.map(t=>t.id)).slice(0,2); draw4(); };
+function parseNum(str){
+  let s=String(str).trim().replace(/\s/g,'').replace(/^1:/,'');
+  if(!s) return NaN;
+  if(s.includes(',')&&s.includes('.')) s=s.replace(/\./g,'').replace(',','.');
+  else if(s.includes(',')) s=s.replace(',','.');
+  else if(/^\d{1,3}(\.\d{3})+$/.test(s)) s=s.replace(/\./g,'');
+  return Number(s);
+}
+const near=(a,b)=>Math.abs(a-b)<=Math.max(1e-9,Math.abs(b)*1e-6);
+function check4fn(){
+  const a=townBy[sel4[0]], b=townBy[sel4[1]]; const jp=jpOf(a,b); const cm=jp*SCALE; const km=cm/100000; const v=parseNum(in4.value);
+  const steps=`<div class="steps"><div>Jarak sebenarnya = jarak peta × penyebut skala</div><div>= ${fmt(jp,1)} cm × ${fmt(SCALE,0)}</div><div>= ${fmt(cm,0)} cm</div><div>= <b>${fmt(km)} km</b> (dibagi 100.000)</div></div>`;
+  if(isNaN(v)){ fb4.innerHTML=`<div class="fb bad">Tulis jawabanmu dalam angka, misalnya 15,75.</div>`; return; }
+  if(near(v,km)) fb4.innerHTML=`<div class="fb ok"><b class="okc">Benar!</b> Jarak ${a.name} ke ${b.name} sekitar ${fmt(km)} km (jarak garis lurus).</div>${steps}`;
+  else if(near(v,cm)) fb4.innerHTML=`<div class="fb bad"><b class="badc">Hampir.</b> ${fmt(v,0)} masih dalam satuan cm. Ubah ke km dengan membagi 100.000.</div>${steps}`;
+  else fb4.innerHTML=`<div class="fb bad"><b class="badc">Belum tepat.</b> Periksa langkah berikut.</div>${steps}`;
+}
+check4.onclick=check4fn; in4.addEventListener('keydown',e=>{if(e.key==='Enter'&&!check4.disabled) check4fn();});
+sel4=['singaraja','denpasar']; draw4();
+
+/* zoom experiment */
+const ZOOMS=[[50,'Perkecil 50%'],[100,'Ukuran asli'],[200,'Perbesar 200%'],[250,'Perbesar 250%']];
+const zc=document.getElementById('zoomchips'), zsvg=document.getElementById('zoomsvg'), zeq=document.getElementById('zoomeq');
+const JP0=jpOf(townBy.singaraja,townBy.denpasar);
+ZOOMS.forEach(([z,l])=>{const b=document.createElement('button'); b.className='chip'; b.textContent=l; b.dataset.z=z; b.setAttribute('aria-pressed','false'); b.onclick=()=>zoom(z); zc.appendChild(b);});
+function zoom(z){
+  zc.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.z===z));
+  const k=z/100, jp=JP0*k, n=SCALE/k, km=jp*n/100000, unit=CM*k, x0=26;
+  let s=`<text x="${x0}" y="30" font-family="Barlow,sans-serif" font-weight="700" font-size="15" fill="#09211D">Singaraja</text>
+    <text x="${x0+JP0*CM*k}" y="30" text-anchor="${k<1?'start':'end'}" font-family="Barlow,sans-serif" font-weight="700" font-size="15" fill="#09211D">Denpasar</text>
+    <line x1="${x0}" y1="50" x2="${x0+JP0*CM*k}" y2="50" stroke="#B5452F" stroke-width="5" stroke-linecap="round"/>
+    <rect x="${x0-6}" y="44" width="12" height="12" fill="#09211D"/><circle cx="${x0+JP0*CM*k}" cy="50" r="7" fill="#fff" stroke="#09211D" stroke-width="3"/>
+    <text x="${x0}" y="84" font-family="Barlow,sans-serif" font-size="14" fill="#3E5752">Jarak di peta: ${fmt(jp)} cm</text>`;
+  for(let i=0;i<4;i++) s+=`<rect x="${x0+i*unit}" y="110" width="${unit}" height="10" fill="${i%2?'#FFFDF7':'#09211D'}" stroke="#09211D" stroke-width="1.5"/>`;
+  ['0','7,5','15','22,5','30 km'].forEach((l,i)=>{ s+=`<text x="${x0+i*unit}" y="140" text-anchor="${i===0?'start':'middle'}" font-family="Barlow,sans-serif" font-size="13" fill="#09211D">${l}</text>`; });
+  s+=`<text x="${x0}" y="104" font-family="Barlow,sans-serif" font-weight="700" font-size="13" fill="#2F6B6F">Skala grafis</text>`;
+  zsvg.innerHTML=s;
+  zeq.innerHTML=`<div><span class="muted small">Skala angka</span><div class="k">1 : ${fmt(n,0)}</div></div>
+    <div>Jarak peta ${fmt(jp)} cm × ${fmt(n,0)} = ${fmt(jp*n,0)} cm</div>
+    <div><span class="muted small">Jarak sebenarnya</span><div class="k">${fmt(km)} km</div></div>
+    <div class="muted small">${z===100?'Pilih ukuran lain dan bandingkan.':'Skala angka berubah, tetapi jarak sebenarnya tetap. Skala grafis ikut membesar atau mengecil bersama peta, sehingga selalu benar.'}</div>`;
+}
+zoom(100);
+
+/* ---------- POS 5 ---------- */
+const qc=document.getElementById('q5'), s5=document.getElementById('s5'), n5=document.getElementById('n5');
+const NS_=[25000,50000,100000,200000,250000,500000,750000,1000000];
+const JPS=[2,2.5,3,4,5,6,7.5,8,12];
+const KELAS=[[2000,'Kadaster'],[4000,'Kadaster'],[10000,'Skala besar'],[25000,'Skala besar'],[50000,'Skala besar'],[100000,'Skala besar'],[200000,'Skala besar'],[300000,'Skala sedang'],[400000,'Skala sedang'],[600000,'Skala kecil'],[750000,'Skala kecil'],[1000000,'Skala kecil'],[2000000,'Skala geografis'],[5000000,'Skala geografis']];
+const CATS=['Kadaster','Skala besar','Skala sedang','Skala kecil','Skala geografis'];
+const PLACES=['Kota Wana Jaya','Desa Sari Mekar','Kota Giri Asih','Desa Dharma Kerti','Desa Suka Maju','Kota Tirta Harum','Desa Batu Asri','Desa Kerta Sari'];
+let q5={list:[],i:0,score:0,done:false};
+function genQ(type){
+  const n=pick(NS_), jp=pick(JPS), js=jp*n/100000, a=pick(PLACES); let b=pick(PLACES); while(b===a) b=pick(PLACES);
+  if(type==='js') return {type, label:'Mencari jarak sebenarnya', text:`Pada peta berskala <b>1 : ${fmt(n,0)}</b>, jarak ${a} ke ${b} adalah <b>${fmt(jp)} cm</b>. Berapa jarak sebenarnya?`, unit:'km', ans:js,
+    steps:`<div>Jarak sebenarnya = ${fmt(jp)} cm × ${fmt(n,0)}</div><div>= ${fmt(jp*n,0)} cm</div><div>= <b>${fmt(js)} km</b></div>`};
+  if(type==='jp') return {type, label:'Mencari jarak di peta', text:`Jarak sebenarnya ${a} ke ${b} adalah <b>${fmt(js)} km</b>. Berapa jaraknya pada peta berskala <b>1 : ${fmt(n,0)}</b>?`, unit:'cm', ans:jp,
+    steps:`<div>${fmt(js)} km = ${fmt(js*100000,0)} cm</div><div>Jarak peta = ${fmt(js*100000,0)} ÷ ${fmt(n,0)}</div><div>= <b>${fmt(jp)} cm</b></div>`};
+  if(type==='n') return {type, label:'Mencari skala', text:`Jarak ${a} ke ${b} di peta <b>${fmt(jp)} cm</b>, sedangkan jarak sebenarnya <b>${fmt(js)} km</b>. Berapa skala peta tersebut?`, unit:'1 : …', ans:n, prefix:true,
+    steps:`<div>${fmt(js)} km = ${fmt(js*100000,0)} cm</div><div>Penyebut = ${fmt(js*100000,0)} ÷ ${fmt(jp)} = ${fmt(n,0)}</div><div>Skala = <b>1 : ${fmt(n,0)}</b></div>`};
+  const [kn,kc]=pick(KELAS);
+  return {type:'kelas', label:'Menggolongkan skala', text:`Peta dengan skala <b>1 : ${fmt(kn,0)}</b> termasuk golongan apa?`, ans:kc,
+    steps:`<div>1 : ${fmt(kn,0)} berada pada rentang <b>${kc.toLowerCase()}</b>.</div>`};
+}
+function start5(){
+  const types=shuffle(['js','js','js','jp','jp','n','n','kelas','kelas','kelas']);
+  q5={list:types.map(genQ),i:0,score:0}; render5();
+}
+function render5(){
+  s5.textContent=q5.score;
+  if(q5.i>=q5.list.length){
+    n5.textContent='10/10';
+    const s=q5.score, msg=s>=9?'Luar biasa! Kamu sudah menguasai perhitungan skala.':s>=7?'Bagus! Sedikit lagi menuju sempurna.':'Terus berlatih. Perhatikan konversi satuan cm ke km.';
+    qc.innerHTML=`<div class="qtype">Selesai</div><div class="prompt">${s} dari 10 benar</div><p class="muted" style="margin:0">${msg}</p><div class="row"><button class="btn amber" id="again5">Main lagi dengan soal baru</button></div>`;
+    document.getElementById('again5').onclick=start5; return;
+  }
+  n5.textContent=`${q5.i+1}/10`;
+  const q=q5.list[q5.i];
+  let body='';
+  if(q.type==='kelas') body=`<div class="opts">${CATS.map(c=>`<button class="opt" data-v="${c}">${c}</button>`).join('')}</div>`;
+  else body=`<label for="in5" class="small muted">Jawabanmu</label><div class="row">${q.prefix?'<b style="font-size:18px">1 :</b>':''}<div class="field"><input id="in5" inputmode="decimal" autocomplete="off" placeholder="ketik angka"><span>${q.prefix?'penyebut':q.unit}</span></div><button class="btn" id="chk5">Periksa</button></div>`;
+  qc.innerHTML=`<div class="qtype">Soal ${q5.i+1} · ${q.label}</div><div class="qtext">${q.text}</div>${body}<div id="fb5" aria-live="polite"></div><div class="row"><button class="btn amber" id="nx5" hidden>${q5.i===9?'Lihat hasil':'Soal berikutnya'}</button></div>`;
+  const fb=document.getElementById('fb5'), nx=document.getElementById('nx5');
+  const finish=(ok,extra='')=>{ if(ok) q5.score++; s5.textContent=q5.score;
+    fb.innerHTML=`<div class="fb ${ok?'ok':'bad'}"><b class="${ok?'okc':'badc'}">${ok?'Benar!':'Belum tepat.'}</b> ${extra}</div><div class="steps">${q.steps}</div>`;
+    nx.hidden=false; nx.focus({preventScroll:true}); };
+  nx.onclick=()=>{q5.i++; render5();};
+  if(q.type==='kelas'){
+    qc.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      qc.querySelectorAll('.opt').forEach(o=>{o.disabled=true; if(o.dataset.v===q.ans) o.classList.add('ok');});
+      const ok=b.dataset.v===q.ans; if(!ok) b.classList.add('bad'); finish(ok, ok?'':`Jawaban yang tepat: ${q.ans}.`);
+    });
+  } else {
+    const inp=document.getElementById('in5'), chk=document.getElementById('chk5');
+    const go=()=>{ const v=parseNum(inp.value); if(isNaN(v)){ fb.innerHTML=`<div class="fb bad">Tulis jawabanmu dalam angka.</div>`; return; }
+      inp.disabled=true; chk.disabled=true;
+      let extra=''; const ok=near(v,q.ans);
+      if(!ok && q.type==='js' && near(v,q.ans*100000)) extra='Angkamu masih dalam cm. Bagi 100.000 untuk mengubahnya ke km.';
+      else if(!ok) extra=`Jawaban yang tepat: ${q.prefix?'1 : ':''}${fmt(q.ans, q.prefix?0:2)}${q.prefix?'':' '+q.unit}.`;
+      finish(ok,extra); };
+    chk.onclick=go; inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!inp.disabled) go();});
+  }
+}
+start5();
+})();
+</script>
+
+</body></html>
